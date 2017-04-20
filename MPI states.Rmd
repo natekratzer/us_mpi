@@ -1,0 +1,134 @@
+---
+title: "MPI States"
+output: html_notebook
+---
+
+##Poverty Aggregation at the state level. 
+
+At this point, each individual has been assigned a status of being MPI poor or not MPI poor. However, the Alkire-Foster indexing method allows us to go beyond a simple headcount of poverty. The intensity of poverty can also be calculated. The intensity calculation uses only the data of those who are poor, and calculates the average weighted deprivations experienced by the poor. Thus, if the poor experience, on average, half of the deprivations in the index, the intensity will be 0.5
+
+The Alkire-Foster index also allow for a combination of headcount and intensity, the adjusted headcount. It is calculated as the headcount multiplied by the intensity. By using the adjusted headcount, poverty is measured as being reduced not only when an individual crosses from poor to nonpoor, but also anytime the depth of poverty experienced by someone who is poor is reduced. 
+
+At this stage of the analysis the person weights (PERWT) that come from the Census Bureau are used to produce accurate estimates for each state. The percent of the overall population that experiences each indicator is calculated and noted using the style per_indicator. The percent that each indicator contributes the poverty index can also be calculated by counting only the number of the mpi poor who are deprived in that indicator, dividing by the total number of people, then dividing that by the adjusted headcount, and finally multiplying by the weight assigned to each indicator. 
+
+
+```{r state MPI}
+#mpi_data = read_feather("C:/Users/natek/Documents/mpi_data.feather")
+
+
+state_mpi <- mpi_data %>%
+  group_by(STATEFIP, YEAR) %>%
+  summarise(headcount = sum(mpi_poor*PERWT)/sum(PERWT),
+            income_censored_hc = sum(income_poverty[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm =TRUE),
+            fam_emp_censored_hc = sum(fam_emp[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            health_censored_hc = sum(health[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            education_censored_hc = sum(education[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            overcrowd_censored_hc = sum(overcrowd[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            computer_internet_censored_hc = sum(computer_internet[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            mpi_poor_hc = sum(mpi_poor*PERWT, na.rm = TRUE),
+            n = sum(PERWT),
+            income_per = sum(income_poverty * PERWT)/n,
+            fam_emp_per = sum(fam_emp * PERWT)/n,
+            health_per = sum(health * PERWT)/n,
+            education_per = sum(education * PERWT)/n,
+            overcrowd_per = sum(overcrowd * PERWT)/n,
+            computer_internet_per = sum(computer_internet * PERWT)/n)
+
+state_mpi <- state_mpi %>%
+  mutate(intensity = (income_censored_hc*.2 + fam_emp_censored_hc *.2 +
+           health_censored_hc * .2 + education_censored_hc * .2 +
+           overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1)/ mpi_poor_hc,
+         adj_hc = headcount*intensity,
+         per_contrib_income = ((income_censored_hc/n)/adj_hc)*.2,
+         per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.2,
+         per_contrib_health = ((health_censored_hc/n)/adj_hc)*.2,
+         per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2,
+         per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1,
+         per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1)
+
+            
+
+state_names <- read_csv("C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv")
+
+state_mpi_names <- full_join(state_mpi, state_names, by = "STATEFIP")
+
+#write_csv(state_mpi_names, "State MPI.csv")     
+
+```
+
+The basic aggregation of the microdata was tested by comparing my state-level
+estimates to those provided by the Census Bureau for microdata validation.
+The Census Bureau Estimates can be found here: https://www.census.gov/programs-surveys/acs/technical-documentation/pums/documentation.html
+
+##Mapping the State MPI 
+
+Here I code for an interactive map to display the data. I use only the 2015 data and display the headcount, adjusted headcount, and percent contribution to the overall index of each indicator.
+
+```{r mapping}
+library(leaflet)
+library(rgdal)
+library(dplyr)
+
+map_states <- readOGR("C:/Users/natek/Downloads/cb_2015_us_state_20m", layer = "cb_2015_us_state_20m",
+                     GDAL1_integer64_policy = TRUE)
+
+state_mpi <- read.csv("C:/Users/natek/Documents/State MPI.csv")      
+
+
+state_names <- read.csv("C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv")
+
+state_mpi_names <- full_join(state_mpi, state_names, by = "STATEFIP")
+
+
+
+state_mpi_2015 <- state_mpi_names %>%
+  filter(YEAR == 2015)
+
+
+map_states@data <- left_join(map_states@data, state_mpi_2015, by = c('NAME' = 'State'))
+
+
+label_hc       <- paste("Headcount:", round(map_states@data$headcount*100, 2))
+label_adj_hc   <- paste("Adj. Headcount:", round(map_states@data$adj_hc*100, 2))
+label_inc_per  <- paste("Income:", round(map_states@data$per_contrib_income*100, 2))
+label_emp_per  <- paste("Employment:", round(map_states@data$per_contrib_fam_emp*100, 2))
+label_hth_per  <- paste("Health:", round(map_states@data$per_contrib_health*100, 2))
+label_educ_per <- paste("Education:", round(map_states@data$per_contrib_education*100, 2))
+label_ovr_per  <- paste("Overcrowded:", round(map_states@data$per_contrib_overcrowd*100, 2))
+label_int_per  <- paste("Internet Access:", round(map_states@data$per_contrib_computer_internet*100, 2))
+
+
+
+labels <- sprintf(
+  "<strong>%s</strong><br/>%s<br/>%s<br/><br/><strong>Percent Contribution</strong><br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s",
+  map_states@data$NAME, label_hc, label_adj_hc, label_inc_per, label_emp_per, label_hth_per, label_educ_per, label_ovr_per, label_int_per
+) %>% lapply(htmltools::HTML)
+
+map_states@data$adj_hc_per <- map_states@data$adj_hc*100
+
+pal <- colorNumeric(
+  palette = "YlOrRd",
+  domain = map_states@data$adj_hc_per
+)
+
+
+leaflet(map_states) %>%
+  addTiles() %>%
+  addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+              opacity = 1.0, fillOpacity = 0.5,
+              fillColor = ~pal(adj_hc_per),
+              label = labels,
+              labelOptions = labelOptions(
+                style = list("font-weight" = "normal", padding = "3px 8px"),
+                textsize = "15px",
+                direction = "auto"))%>%
+  addLegend(pal = pal, values = ~adj_hc_per, opacity = 0.7, title = "Adj. Headcount",
+          position = "bottomright") %>%
+  setView(lng = -95, lat = 38.2527, zoom = 3)
+  
+
+```
+
+I have also put the map online here: http://rpubs.com/nwkratzer/254722
+
+Testing a change

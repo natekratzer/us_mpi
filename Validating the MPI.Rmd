@@ -1,0 +1,161 @@
+---
+title: "R Code for Validating the MPI"
+header-includes:
+- \usepackage{bbm}
+output: pdf_document
+---
+
+The MPI is primarily a normative index. As the MPI handbook argues,
+
+"Statistical approaches are relevant for multidimensional poverty measures, but Chapter 6 argued,
+value judgements also constitute a fundamental prior element. Thus, information on relationships
+between indicators is used to improve rather than determine measurement design. For example, if
+indicators are very highly associated in a particular dataset, that is not sufficient grounds to
+mechanically drop either indicator; both may be retained for other reasons-for example if the
+sequence of their reduction over time differs, or if both are important in policy terms. So the
+normative decision may be to retain both indicators, with or without adjustments to their weights,
+but the analysis of redundancy will have clarified their justification and treatment." (Ch 7, p. 16)
+
+Nonetheless, there are some quantitative checks that can be useful in assessing the index. 
+
+The handbook suggests using Cramer's V to measure correlation, as well as their own measure of redundancy.Both consist of similar terms that are based on a two-by-two contingency table. For indicators j and j', we can then define the following terms:
+
+Let $\mathbbm{p}^{jj'}_{11}$  be the percentage of the population experiencing both deprivations.
+
+Let $\mathbbm{p}^{jj'}_{10}$  be the percentage of the population deprived in j but not j'.
+
+Let $\mathbbm{p}^{jj'}_{01}$  be the percentage of the population deprived in j' but not j.
+
+Let $\mathbbm{p}^{jj'}_{00}$  be the percentage of the population deprived in neither. 
+
+The percentages deprived in each indicator are written as: 
+
+Let $\mathbbm{p}^{j'}_{+1}$ be the percentage of the population deprived in j'.
+
+Let $\mathbbm{p}^{j'}_{+0}$ be the percentage of the population not deprived in j'.
+
+Let $\mathbbm{p}^{j}_{1+}$  be the percentage of the population deprived in j.
+
+Let $\mathbbm{p}^{j}_{0+}$  be the percentage of the population not deprived in j.
+
+
+Cramer's V can then be written:
+
+$$
+Cramer's\; V = \frac{(\mathbbm{p}^{jj'}_{11}\times\mathbbm{p}^{jj'}_{00})-
+(\mathbbm{p}^{jj'}_{10}\times\mathbbm{p}^{jj'}_{00})}
+{\sqrt{\mathbbm{p}^{j'}_{+1}\times\mathbbm{p}^{j'}_{+0}\times\mathbbm{p}^{j}_{1+}\times\mathbbm{p}^{j}_{0+}}}
+$$
+
+The redundancy measure is as follows:
+$$
+R^o = \frac{\mathbbm{p}^{jj'}_{11}} {\min(\mathbbm{p}^{j'}_{+1},\mathbbm{p}^j_{1+})}, 0 \leq R^o \leq 1
+$$
+
+Loading in required libraries and data
+```{r, message = FALSE}
+library(purrr)
+library(feather)
+library(tidyverse)
+library(gtools)
+library(stargazer)
+
+mpi_data_15 = read_feather("C:/Users/natek/Documents/mpi_data_15.feather")
+
+
+```
+
+Applying Cramer's V and the Redundancy measure
+```{r, message = FALSE, warning = FALSE}
+combos <- c("income_poverty", "fam_emp", "health", "education", "overcrowd", "computer_internet",
+            "hcost_dep", "lang_dep", "disability")
+
+c_matrix <- combinations(n=length(combos), r=2, v=combos) %>% as_data_frame()
+
+cramers_v <- function(x_name, y_name){
+  x <- mpi_data_15[[x_name]]
+  y <- mpi_data_15[[y_name]]
+  t1 <- table(x,y)
+  n <- nrow(mpi_data_15)
+  numerator <- ((t1[1,1]/n)*(t1[2,2]/n)) - ((t1[1,2]/n)*(t1[2,1]/n))
+  denominator <- sqrt(mean(x)*mean(y)*(1-mean(x)*(1-mean(y))))
+  cv <- numerator/denominator
+  cv
+}
+
+calc_redundancy <- function(x_name, y_name){
+  x <- mpi_data_15[[x_name]]
+  y <- mpi_data_15[[y_name]]
+  t1 = table(x,y)
+  redundancy = (t1[2,2]/nrow(mpi_data_15))/
+    (min(mean(x, na.rm = T),
+         mean(y, na.rm = T),
+         mean(x[mpi_data_15$mpi_poor == 1], na.rm =T),
+         mean(y[mpi_data_15$mpi_poor == 1], na.rm =T)
+    ))
+  redundancy
+}
+
+c_matrix$cramers_V <- map2(c_matrix$V1, c_matrix$V2, cramers_v)
+c_matrix$redundancy_coefficient <- map2(c_matrix$V1, c_matrix$V2, calc_redundancy)
+
+```
+
+Reformatting the data to make tables
+```{r, message = FALSE}
+c_matrix$cramers_V <- round(as.numeric(c_matrix$cramers_V), 2) 
+c_matrix$red <- round(as.numeric(c_matrix$redundancy_coefficient), 2) 
+
+col1 <- c("-", c_matrix$cramers_V[1:8])
+col2 <- c("", "-", c_matrix$cramers_V[9:15])
+col3 <- c("", "","-", c_matrix$cramers_V[16:21])
+col4 <- c("", "","", "-", c_matrix$cramers_V[22:26])
+col5 <- c("", "", "", "", "-", c_matrix$cramers_V[27:30])
+col6 <- c("", "", "", "", "", "-", c_matrix$cramers_V[31:33])
+col7 <- c("", "", "", "", "", "", "-", c_matrix$cramers_V[34:35])
+col8 <- c("", "", "", "", "", "", "", "-", c_matrix$cramers_V[36])
+col9 <- c("", "", "", "", "", "", "",  "", "-")
+
+
+v_table <- cbind(col1, col2, col3, col4, col5, col6, col7, col8, col9)
+colnames(v_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
+                       "Income", "Language", "Overcrowding")
+rownames(v_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
+                       "Income", "Language", "Overcrowding")
+
+col1 <- c("-", c_matrix$red[1:8])
+col2 <- c("", "-", c_matrix$red[9:15])
+col3 <- c("", "","-", c_matrix$red[16:21])
+col4 <- c("", "","", "-", c_matrix$red[22:26])
+col5 <- c("", "", "", "", "-", c_matrix$red[27:30])
+col6 <- c("", "", "", "", "", "-", c_matrix$red[31:33])
+col7 <- c("", "", "", "", "", "", "-", c_matrix$red[34:35])
+col8 <- c("", "", "", "", "", "", "", "-", c_matrix$red[36])
+col9 <- c("", "", "", "", "", "", "",  "", "-")
+
+
+r_table <- cbind(col1, col2, col3, col4, col5, col6, col7, col8, col9)
+colnames(r_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
+                       "Income", "Language", "Overcrowding")
+rownames(r_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
+                       "Income", "Language", "Overcrowding")
+
+```
+
+Cramer's V
+```{r}
+print(v_table, quote = "FALSE")
+```
+
+Redundancy
+```{r}
+print(r_table, quote = "FALSE")
+```
+
+
+```{r, eval = FALSE, echo = FALSE}
+#this produces LaTeX code for the tables
+stargazer(v_table, title = "Cramer's V")
+stargazer(r_table, title = "Redundancy Coefficients")
+```
+
