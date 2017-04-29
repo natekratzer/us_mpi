@@ -96,8 +96,16 @@ calc_redundancy <- function(x_name, y_name){
   redundancy
 }
 
+chi_sq_p <- function(x_name,y_name){
+  x <- mpi_data_15[[x_name]]
+  y <- mpi_data_15[[y_name]]
+  temp <- chisq.test(x, y)
+  temp$p.value
+}
+
 c_matrix$cramers_V <- map2(c_matrix$V1, c_matrix$V2, cramers_v)
 c_matrix$redundancy_coefficient <- map2(c_matrix$V1, c_matrix$V2, calc_redundancy)
+c_matrix$p_value <- map2(c_matrix$V1, c_matrix$V2, chi_sq_p)
 
 ```
 
@@ -105,6 +113,8 @@ Reformatting the data to make tables
 ```{r, message = FALSE}
 c_matrix$cramers_V <- round(as.numeric(c_matrix$cramers_V), 2) 
 c_matrix$red <- round(as.numeric(c_matrix$redundancy_coefficient), 2) 
+c_matrix$p <- round(as.numeric(c_matrix$p_value), 8) 
+
 
 col1 <- c("-", c_matrix$cramers_V[1:8])
 col2 <- c("", "-", c_matrix$cramers_V[9:15])
@@ -140,6 +150,24 @@ colnames(r_table) <- c("Internet", "Disability", "Education", "Employment", "Hou
 rownames(r_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
                        "Income", "Language", "Overcrowding")
 
+col1 <- c("-", c_matrix$p[1:8])
+col2 <- c("", "-", c_matrix$p[9:15])
+col3 <- c("", "","-", c_matrix$p[16:21])
+col4 <- c("", "","", "-", c_matrix$p[22:26])
+col5 <- c("", "", "", "", "-", c_matrix$p[27:30])
+col6 <- c("", "", "", "", "", "-", c_matrix$p[31:33])
+col7 <- c("", "", "", "", "", "", "-", c_matrix$p[34:35])
+col8 <- c("", "", "", "", "", "", "", "-", c_matrix$p[36])
+col9 <- c("", "", "", "", "", "", "",  "", "-")
+
+
+p_table <- cbind(col1, col2, col3, col4, col5, col6, col7, col8, col9)
+colnames(p_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
+                       "Income", "Language", "Overcrowding")
+rownames(p_table) <- c("Internet", "Disability", "Education", "Employment", "Housing", "Health", 
+                       "Income", "Language", "Overcrowding")
+
+
 ```
 
 Cramer's V
@@ -152,10 +180,36 @@ Redundancy
 print(r_table, quote = "FALSE")
 ```
 
+Chi Square
+```{r}
+print(p_table, quote = "FALSE")
+```
 
 ```{r, eval = FALSE, echo = FALSE}
 #this produces LaTeX code for the tables
 stargazer(v_table, title = "Cramer's V")
 stargazer(r_table, title = "Redundancy Coefficients")
+stargazer(p_table, title = "p-values from Chi Sq test")
+
+```
+
+
+Bootstrapping the MPI
+```{r}
+df_boot <- mpi_data_15 %>% select(mpi_poor, PERWT)
+
+df_length <- nrow(mpi_data_15)
+
+nboot <- 1000
+boot_mean <- vector(length = nboot)
+
+for (i in 1:nboot) {
+  df_boot[sample(nrow(df_boot), size = df_length, replace = TRUE), ]
+  boot_mean[i] = sum(df_boot$mpi_poor*df_boot$PERWT, na.rm = TRUE)/sum(df_boot$PERWT)
+}
+
+
+bootstrap_mean <- mean(boot_mean)
+ci <- quantile(boot_mean, c(.025, .975))
 ```
 
