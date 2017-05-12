@@ -13,7 +13,7 @@ At this stage of the analysis the person weights (PERWT) that come from the Cens
 
 
 ```{r state MPI}
-#mpi_data = read_feather("C:/Users/natek/Documents/mpi_data.feather")
+mpi_data_15 = read_feather("C:/Users/natek/Documents/mpi_data_15.feather")
 
 
 state_mpi <- mpi_data %>%
@@ -25,6 +25,10 @@ state_mpi <- mpi_data %>%
             education_censored_hc = sum(education[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
             overcrowd_censored_hc = sum(overcrowd[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
             computer_internet_censored_hc = sum(computer_internet[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            disability_censored_hc = sum(disability[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            lang_dep_hc = sum(lang_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            hcost_dep_hc = sum(hcost_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+
             mpi_poor_hc = sum(mpi_poor*PERWT, na.rm = TRUE),
             n = sum(PERWT),
             income_per = sum(income_poverty * PERWT)/n,
@@ -32,19 +36,28 @@ state_mpi <- mpi_data %>%
             health_per = sum(health * PERWT)/n,
             education_per = sum(education * PERWT)/n,
             overcrowd_per = sum(overcrowd * PERWT)/n,
-            computer_internet_per = sum(computer_internet * PERWT)/n)
+            computer_internet_per = sum(computer_internet * PERWT)/n,
+            disability_per = sum(disability * PERWT)/n,
+            lang_dep_per = sum(lang_dep * PERWT)/n,
+            hcost_dep_per = sum(hcost * PERWT)/n)
+
 
 state_mpi <- state_mpi %>%
-  mutate(intensity = (income_censored_hc*.2 + fam_emp_censored_hc *.2 +
-           health_censored_hc * .2 + education_censored_hc * .2 +
-           overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1)/ mpi_poor_hc,
+  mutate(intensity = (income_censored_hc*.1 + fam_emp_censored_hc *.1 +
+           health_censored_hc * .1 + education_censored_hc * .2 +
+           overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 +
+           disability_censored_hc * .1 + lang_dep_censored_hc * .1 + hcost_dep_per * .1)/ mpi_poor_hc,
          adj_hc = headcount*intensity,
          per_contrib_income = ((income_censored_hc/n)/adj_hc)*.2,
          per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.2,
          per_contrib_health = ((health_censored_hc/n)/adj_hc)*.2,
          per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2,
          per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1,
-         per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1)
+         per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1,
+         per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.2,
+         per_contrib_lang_dep = ((lang_dep_hc/n)/adj_hc)*.2,
+         per_contrib_hcost_dep_per = ((hcost_dep_hc/n)/adj_hc)*.2)
+
 
             
 
@@ -52,7 +65,15 @@ state_names <- read_csv("C:/Users/natek/Google Drive/Dissertation/state names an
 
 state_mpi_names <- full_join(state_mpi, state_names, by = "STATEFIP")
 
-#write_csv(state_mpi_names, "State MPI.csv")     
+#write_csv(state_mpi_names, "State MPI.csv")  
+
+state_mpi_names <- state_mpi_names %>%
+  mutate(per_contrib_econ = per_contrib_income + per_contrib_fam_emp,
+         per_contrib_health_dim = per_contrib_health + per_contrib_disability,
+         per_contrib_housing = per_contrib_overcrowd + per_contrib_hcost_dep,
+         per_contrib_social = per_contrib_computer_internet + per_contrib_lang_dep)
+
+#make one that aggregates within the dimensions. 
 
 ```
 
@@ -90,18 +111,17 @@ map_states@data <- left_join(map_states@data, state_mpi_2015, by = c('NAME' = 'S
 
 label_hc       <- paste("Headcount:", round(map_states@data$headcount*100, 2))
 label_adj_hc   <- paste("Adj. Headcount:", round(map_states@data$adj_hc*100, 2))
-label_inc_per  <- paste("Income:", round(map_states@data$per_contrib_income*100, 2))
-label_emp_per  <- paste("Employment:", round(map_states@data$per_contrib_fam_emp*100, 2))
-label_hth_per  <- paste("Health:", round(map_states@data$per_contrib_health*100, 2))
+label_econ_per  <- paste("Economic:", round(map_states@data$per_contrib_econ*100, 2))
+label_hth_per  <- paste("Health:", round(map_states@data$per_contrib_health_dim*100, 2))
 label_educ_per <- paste("Education:", round(map_states@data$per_contrib_education*100, 2))
-label_ovr_per  <- paste("Overcrowded:", round(map_states@data$per_contrib_overcrowd*100, 2))
-label_int_per  <- paste("Internet Access:", round(map_states@data$per_contrib_computer_internet*100, 2))
+label_house_per  <- paste("Housing:", round(map_states@data$per_contrib_housing*100, 2))
+label_social_per  <- paste("Social:", round(map_states@data$per_contrib_social*100, 2))
 
 
 
 labels <- sprintf(
-  "<strong>%s</strong><br/>%s<br/>%s<br/><br/><strong>Percent Contribution</strong><br/>%s<br/>%s<br/>%s<br/>%s<br/>%s<br/>%s",
-  map_states@data$NAME, label_hc, label_adj_hc, label_inc_per, label_emp_per, label_hth_per, label_educ_per, label_ovr_per, label_int_per
+  "<strong>%s</strong><br/>%s<br/>%s<br/><br/><strong>Percent Contribution</strong><br/>%s<br/>%s<br/>%s<br/>%s<br/>%s",
+  map_states@data$NAME, label_hc, label_adj_hc, label_econ_per, label_hth_per, label_educ_per, label_house_per, label_social_per
 ) %>% lapply(htmltools::HTML)
 
 map_states@data$adj_hc_per <- map_states@data$adj_hc*100
