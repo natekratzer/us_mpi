@@ -1,7 +1,7 @@
 ---
 title: "Constructing the MPI"
 author: "Nate Kratzer"
-date: "April 9, 2017"
+date: "May 13, 2017"
 output: pdf_document
 ---
 
@@ -19,19 +19,19 @@ This document shows how to construct a multidimensional poverty index for the Un
 The index uses nine indicators across six dimensions
 
 1. Economic
-    +Income Poverty
-    +Employment
+    + Income Poverty
+    + Employment
 2. Health
-    +Insurance
-    +Disability
+    + Insurance
+    + Disability
 3. Housing
-    +Cost of Housing
-    +Overcrowding
+    + Cost of Housing
+    + Overcrowding
 4. Social Connections
-    +Linguistic Isolation
-    +Internet Access
+    + Linguistic Isolation
+    + Internet Access
 5. Education
-    +Educational Attainment
+    + Educational Attainment
 
 
 ##The initial data
@@ -153,6 +153,7 @@ data$FTOTINC[data$FTOTINC == 99999] <- NA
 
 data$hcost <- apply(data[ ,c("OWNCOST", "RENTGRS")], 1, max, na.rm = TRUE)
 data$hcost_dep <- if_else(data$hcost*12/data$FTOTINC > .50, 1, 0) # HUD uses 50% as severe cost burdened
+data$hcost_dep[is.na(data$hcost_dep)] <- 0
 ```
 
 

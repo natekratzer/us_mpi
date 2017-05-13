@@ -11,13 +11,20 @@ The Alkire-Foster index also allow for a combination of headcount and intensity,
 
 At this stage of the analysis the person weights (PERWT) that come from the Census Bureau are used to produce accurate estimates for each state. The percent of the overall population that experiences each indicator is calculated and noted using the style per_indicator. The percent that each indicator contributes the poverty index can also be calculated by counting only the number of the mpi poor who are deprived in that indicator, dividing by the total number of people, then dividing that by the adjusted headcount, and finally multiplying by the weight assigned to each indicator. 
 
+```{r libraries}
+library(feather)
+```
+
 
 ```{r state MPI}
+##the problem is NAs in hcost_dep. Take those out and this should work.
+
+
 mpi_data_15 = read_feather("C:/Users/natek/Documents/mpi_data_15.feather")
 
 
-state_mpi <- mpi_data %>%
-  group_by(STATEFIP, YEAR) %>%
+state_mpi <- mpi_data_15 %>%
+  group_by(STATEFIP) %>%
   summarise(headcount = sum(mpi_poor*PERWT)/sum(PERWT),
             income_censored_hc = sum(income_poverty[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm =TRUE),
             fam_emp_censored_hc = sum(fam_emp[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
@@ -26,8 +33,8 @@ state_mpi <- mpi_data %>%
             overcrowd_censored_hc = sum(overcrowd[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
             computer_internet_censored_hc = sum(computer_internet[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
             disability_censored_hc = sum(disability[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
-            lang_dep_hc = sum(lang_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
-            hcost_dep_hc = sum(hcost_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            lang_dep_censored_hc = sum(lang_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+            hcost_dep_censored_hc = sum(hcost_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
 
             mpi_poor_hc = sum(mpi_poor*PERWT, na.rm = TRUE),
             n = sum(PERWT),
@@ -39,7 +46,7 @@ state_mpi <- mpi_data %>%
             computer_internet_per = sum(computer_internet * PERWT)/n,
             disability_per = sum(disability * PERWT)/n,
             lang_dep_per = sum(lang_dep * PERWT)/n,
-            hcost_dep_per = sum(hcost * PERWT)/n)
+            hcost_dep_per = sum(hcost_dep * PERWT)/n)
 
 
 state_mpi <- state_mpi %>%
@@ -48,30 +55,32 @@ state_mpi <- state_mpi %>%
            overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 +
            disability_censored_hc * .1 + lang_dep_censored_hc * .1 + hcost_dep_per * .1)/ mpi_poor_hc,
          adj_hc = headcount*intensity,
-         per_contrib_income = ((income_censored_hc/n)/adj_hc)*.2,
-         per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.2,
-         per_contrib_health = ((health_censored_hc/n)/adj_hc)*.2,
+         per_contrib_income = ((income_censored_hc/n)/adj_hc)*.1,
+         per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.1,
+         per_contrib_health = ((health_censored_hc/n)/adj_hc)*.1,
          per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2,
          per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1,
          per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1,
-         per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.2,
-         per_contrib_lang_dep = ((lang_dep_hc/n)/adj_hc)*.2,
-         per_contrib_hcost_dep_per = ((hcost_dep_hc/n)/adj_hc)*.2)
+         per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.1,
+         per_contrib_lang_dep = ((lang_dep_censored_hc/n)/adj_hc)*.1,
+         per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1)
 
 
             
 
 state_names <- read_csv("C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv")
 
-state_mpi_names <- full_join(state_mpi, state_names, by = "STATEFIP")
+state_mpi_names <- left_join(state_mpi, state_names, by = "STATEFIP")
 
-#write_csv(state_mpi_names, "State MPI.csv")  
 
 state_mpi_names <- state_mpi_names %>%
   mutate(per_contrib_econ = per_contrib_income + per_contrib_fam_emp,
          per_contrib_health_dim = per_contrib_health + per_contrib_disability,
          per_contrib_housing = per_contrib_overcrowd + per_contrib_hcost_dep,
          per_contrib_social = per_contrib_computer_internet + per_contrib_lang_dep)
+
+write_csv(state_mpi_names, "State MPI.csv")  
+
 
 #make one that aggregates within the dimensions. 
 
@@ -93,17 +102,7 @@ library(dplyr)
 map_states <- readOGR("C:/Users/natek/Downloads/cb_2015_us_state_20m", layer = "cb_2015_us_state_20m",
                      GDAL1_integer64_policy = TRUE)
 
-state_mpi <- read.csv("C:/Users/natek/Documents/State MPI.csv")      
-
-
-state_names <- read.csv("C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv")
-
-state_mpi_names <- full_join(state_mpi, state_names, by = "STATEFIP")
-
-
-
-state_mpi_2015 <- state_mpi_names %>%
-  filter(YEAR == 2015)
+state_mpi_2015 <- read.csv("C:/Users/natek/Documents/Github/us_mpi/State MPI.csv")      
 
 
 map_states@data <- left_join(map_states@data, state_mpi_2015, by = c('NAME' = 'State'))
