@@ -108,19 +108,22 @@ state_mpi_2015 <- read.csv("C:/Users/natek/Documents/Github/us_mpi/State MPI.csv
 map_states@data <- left_join(map_states@data, state_mpi_2015, by = c('NAME' = 'State'))
 
 
-label_hc       <- paste("Headcount:", round(map_states@data$headcount*100, 2))
-label_adj_hc   <- paste("Adj. Headcount:", round(map_states@data$adj_hc*100, 2))
-label_econ_per  <- paste("Economic:", round(map_states@data$per_contrib_econ*100, 2))
-label_hth_per  <- paste("Health:", round(map_states@data$per_contrib_health_dim*100, 2))
-label_educ_per <- paste("Education:", round(map_states@data$per_contrib_education*100, 2))
-label_house_per  <- paste("Housing:", round(map_states@data$per_contrib_housing*100, 2))
-label_social_per  <- paste("Social:", round(map_states@data$per_contrib_social*100, 2))
-
+label_hc         <- paste("Headcount:     ", round(map_states@data$headcount*100, 1))
+label_adj_hc     <- paste("Adj. Headcount:", round(map_states@data$adj_hc*100, 1))
+label_inc_per    <- paste("Income:        ", round(map_states@data$per_contrib_income*100, 1))
+label_emp_per    <- paste("Employment:    ", round(map_states@data$per_contrib_fam_emp*100, 1))
+label_hth_per    <- paste("Health Ins.:   ", round(map_states@data$per_contrib_health*100, 1))
+label_dis_per    <- paste("Disability:    ", round(map_states@data$per_contrib_disability*100, 1))
+label_educ_per   <- paste("Education:     ", round(map_states@data$per_contrib_education*100, 1))
+label_house_per  <- paste("Housing Costs: ", round(map_states@data$per_contrib_hcost_dep*100, 1))
+label_crowd_per  <- paste("Overcrowding:  ", round(map_states@data$per_contrib_overcrowd*100, 1))
+label_int_per    <- paste("Internet:      ", round(map_states@data$per_contrib_computer_internet*100, 1))
+label_lang_per   <- paste("Language Iso.: ", round(map_states@data$per_contrib_lang_dep*100, 1))
 
 
 labels <- sprintf(
-  "<strong>%s</strong><br/>%s<br/>%s<br/><br/><strong>Percent Contribution</strong><br/>%s<br/>%s<br/>%s<br/>%s<br/>%s",
-  map_states@data$NAME, label_hc, label_adj_hc, label_econ_per, label_hth_per, label_educ_per, label_house_per, label_social_per
+  "<strong>%s</strong><br/>%s<br/>%s<br/><br/><strong>Percent Contribution</strong><br/>%s %s<br/>%s %s<br/>%s %s<br/>%s %s<br/>%s",
+  map_states@data$NAME, label_hc, label_adj_hc, label_inc_per, label_emp_per, label_hth_per, label_dis_per, label_educ_per, label_house_per, label_crowd_per, label_int_per, label_lang_per
 ) %>% lapply(htmltools::HTML)
 
 map_states@data$adj_hc_per <- map_states@data$adj_hc*100
@@ -147,7 +150,3 @@ leaflet(map_states) %>%
   
 
 ```
-
-I have also put the map online here: http://rpubs.com/nwkratzer/254722
-
-Testing a change

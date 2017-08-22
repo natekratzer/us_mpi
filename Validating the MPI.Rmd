@@ -185,7 +185,7 @@ Chi Square
 print(p_table, quote = "FALSE")
 ```
 
-```{r, eval = FALSE, echo = FALSE}
+```{r}
 #this produces LaTeX code for the tables
 stargazer(v_table, title = "Cramer's V")
 stargazer(r_table, title = "Redundancy Coefficients")

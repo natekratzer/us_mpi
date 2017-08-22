@@ -39,6 +39,8 @@ The index uses nine indicators across six dimensions
 Data comes from IPUMS USA and covers 2013, 2014, and 2015. I have commented out the lines of code used to read in the data from the original downloaded csv. After loading, I suggest saving in R's feather format to save time. 
 
 ```{r data, message = FALSE}
+library(survey)
+library(stargazer)
 library(dplyr)
 library(readr)
 library(feather)
@@ -68,6 +70,9 @@ data$income_poverty = if_else(data$POVERTY < 100, 1, 0)
 Family employment is also assigned at the household level. If no one in the family is employed, then the family is initially considered employment deprived. However, if anyone in the family has retirement income, or investment income in excess of $25,000, or if the family lives on a working farm, then the family is not considered employment deprived. 
 
 ```{r employment, message = FALSE}
+data$INCINVST[data$INCINVST == 999999] <- 0
+data$INCRETIR[data$INCRETIR == 999999] <- 0
+
 data = data %>%
   mutate(emp_num = if_else(EMPSTAT == 1, 1, 0)) %>%
   group_by(SERIAL, YEAR) %>%
@@ -79,7 +84,7 @@ data = data %>%
 
 ## Health
 
-#### Health Insuranc
+#### Health Insurance
 
 Health insurance is assigned at the individual level. Some members of the household may have health insurance, while others do not. 
 ```{r health, message = FALSE}
@@ -215,6 +220,7 @@ Writing out the data.
 ```{r}
 write_feather(mpi_data, "C:/Users/natek/Documents/mpi_data.feather")
 write_feather(mpi_data_15, "C:/Users/natek/Documents/mpi_data_15.feather")
+rm(mpi_data)
 
 ```
 
@@ -223,53 +229,115 @@ write_feather(mpi_data_15, "C:/Users/natek/Documents/mpi_data_15.feather")
 Here I calculate an AF index for the U.S. in 2015. 
 
 ```{r}
-headcount = sum(mpi_data_15$mpi_poor*mpi_data_15$PERWT, na.rm = TRUE)/sum(mpi_data_15$PERWT)
+censored_mpi_data_15 <- mpi_data_15
+censored_mpi_data_15[censored_mpi_data_15$mpi_poor == 0, 7:15] <- 0
 
-income_censored_hc = sum(mpi_data_15$income_poverty[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
+svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data_15)
+cen_svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = censored_mpi_data_15)
 
-fam_emp_censored_hc = sum(mpi_data_15$fam_emp[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+cen_hc_tbl <- svymean(~income_poverty+fam_emp+health+disability+education+overcrowd+hcost_dep+
+                           computer_internet+lang_dep+mpi_poor, design = cen_svy_df)
 
-health_censored_hc = sum(mpi_data_15$health[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+cen_hc_table <- ftable(cen_hc_tbl)
 
-education_censored_hc = sum(mpi_data_15$education[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-
-overcrowd_censored_hc = sum(mpi_data_15$overcrowd[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-
-computer_internet_censored_hc = sum(mpi_data_15$computer_internet[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-
-disability_censored_hc = sum(mpi_data_15$disability[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-
-lang_dep_censored_hc = sum(mpi_data_15$lang_dep[mpi_data_15$mpi_poor == 1]*mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-
-hcost_dep_censored_hc = sum(mpi_data_15$hcost_dep[mpi_data_15$mpi_poor == 1]*mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-
-mpi_poor_hc = sum(mpi_data_15$mpi_poor*mpi_data_15$PERWT, na.rm = TRUE)
-n = sum(mpi_data_15$PERWT)
-income_per = sum(mpi_data_15$income_poverty * mpi_data_15$PERWT)/n
-fam_emp_per = sum(mpi_data_15$fam_emp * mpi_data_15$PERWT)/n
-health_per = sum(mpi_data_15$health * mpi_data_15$PERWT)/n
-education_per = sum(mpi_data_15$education * mpi_data_15$PERWT)/n
-overcrowd_per = sum(mpi_data_15$overcrowd * mpi_data_15$PERWT)/n
-computer_internet_per = sum(mpi_data_15$computer_internet * mpi_data_15$PERWT)/n
-disability_per = sum(mpi_data_15$disability * mpi_data_15$PERWT)/n
-lang_dep_per = sum(mpi_data_15$lang_dep * mpi_data_15$PERWT)/n
-hcost_dep_per = sum(mpi_data_15$hcost_dep * mpi_data_15$PERWT, na.rm =TRUE)/n
+incidence_tbl <- svymean(~income_poverty+fam_emp+health+disability+education+overcrowd+hcost_dep+
+                           computer_internet+lang_dep+mpi_poor, design = svy_df)
+incidence_table <- ftable(incidence_tbl)
+incidence_table <- data.frame(incidence_table[,1], incidence_table[,2], cen_hc_table[, 1], cen_hc_table[, 2])
+colnames(incidence_table) <- c("Uncensored Mean", "Uncensored SE", "Censored Mean", "Censored SE")
 
 
-intensity = (income_censored_hc*.1 + fam_emp_censored_hc *.1 +
-           health_censored_hc * .1 + education_censored_hc * .2 +
-           overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 + disability_censored_hc *.1 +
-           lang_dep_censored_hc*.1 + hcost_dep_censored_hc*.1)/ mpi_poor_hc
-adj_hc = headcount*intensity
-per_contrib_income = ((income_censored_hc/n)/adj_hc)*.1
-per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.1
-per_contrib_health = ((health_censored_hc/n)/adj_hc)*.1
-per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2
-per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1
-per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.1
-per_contrib_lang_dep = ((lang_dep_censored_hc/n)/adj_hc)*.1
-per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1
-per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1
+
+intensity_tbl <- svyby(~mpi_score, ~I(mpi_poor == 1),design=svy_df, svymean)
+intensity_table <-ftable(intensity_tbl)
+
+headcount <- incidence_table[10,1:2]
+intensity <- c(intensity_tbl$mpi_score[[2]],intensity_tbl$se[[2]])
+adj_hc <- c(headcount[1]*intensity[1], "")
+adjusted_hc <- adj_hc[[1]]
+
+mpi_overview<- rbind(as.numeric(headcount), as.numeric(intensity), as.numeric(adj_hc))
+row.names(mpi_overview) <- c("headcount", "intensity", "adj_hc")
+colnames(mpi_overview) <- c("Value", "Standard Error")
+
+weights <- c(.1,.1,.1,.1,.2,.1,.1,.1,.1)
+per_contrib_vector <- (cen_hc_table[1:9,1]/adjusted_hc)*weights
+per_contrib_df <- data.frame(per_contrib_vector)
+#names(per_contrib_df) <- row.names(incidence_table)[1:9]
+  
+mpi_overview <- mpi_overview * 100
+incidence_table <- incidence_table * 100
+per_contrib_df <- per_contrib_df *100
+
+inc_mpi_crosstab <- svytable(~income_poverty+mpi_poor, design = svy_df, Ntotal = 100)
+inc_mpi_crosstab <- ftable(inc_mpi_crosstab)
+
+stargazer(mpi_overview, title = "MPI Overview", digits = 2, align = TRUE)
+stargazer(incidence_table, summary = FALSE, title = "Incidence", digits = 2, align = TRUE)
+stargazer(per_contrib_df, summary = FALSE, title = "Percent Contribution to Adjusted Headcount", 
+          digits = 2, align = TRUE)
+stargazer(inc_mpi_crosstab, title = "Income Poor v. MPI Poor", digits = 2, align = TRUE)
+
+
+# survey_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data_15)
+# 
+# svymean(~overcrowd+income_poverty+fam_emp, design = survey_df)
+# svyby(~overcrowd+income_poverty+fam_emp, ~I(SEX == 1),design=survey_df, svymean)
+# 
+# 
+# svyttest(overcrowd~SEX, survey_df)
+# svyby(~overcrowd,~I(SEX == 1),design=survey_df, svymean)
+# summary(svyglm(overcrowd~I(SEX == 1)+0,design = survey_df))
+# 
+# 
+# 
+# headcount = sum(mpi_data_15$mpi_poor*mpi_data_15$PERWT, na.rm = TRUE)/sum(mpi_data_15$PERWT)
+# 
+# income_censored_hc = sum(mpi_data_15$income_poverty[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
+# 
+# fam_emp_censored_hc = sum(mpi_data_15$fam_emp[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+# 
+# health_censored_hc = sum(mpi_data_15$health[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+# 
+# education_censored_hc = sum(mpi_data_15$education[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+# 
+# overcrowd_censored_hc = sum(mpi_data_15$overcrowd[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+# 
+# computer_internet_censored_hc = sum(mpi_data_15$computer_internet[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
+# 
+# disability_censored_hc = sum(mpi_data_15$disability[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
+# 
+# lang_dep_censored_hc = sum(mpi_data_15$lang_dep[mpi_data_15$mpi_poor == 1]*mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
+# 
+# hcost_dep_censored_hc = sum(mpi_data_15$hcost_dep[mpi_data_15$mpi_poor == 1]*mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
+# 
+# mpi_poor_hc = sum(mpi_data_15$mpi_poor*mpi_data_15$PERWT, na.rm = TRUE)
+# n = sum(mpi_data_15$PERWT)
+# income_per = sum(mpi_data_15$income_poverty * mpi_data_15$PERWT)/n
+# fam_emp_per = sum(mpi_data_15$fam_emp * mpi_data_15$PERWT)/n
+# health_per = sum(mpi_data_15$health * mpi_data_15$PERWT)/n
+# education_per = sum(mpi_data_15$education * mpi_data_15$PERWT)/n
+# overcrowd_per = sum(mpi_data_15$overcrowd * mpi_data_15$PERWT)/n
+# computer_internet_per = sum(mpi_data_15$computer_internet * mpi_data_15$PERWT)/n
+# disability_per = sum(mpi_data_15$disability * mpi_data_15$PERWT)/n
+# lang_dep_per = sum(mpi_data_15$lang_dep * mpi_data_15$PERWT)/n
+# hcost_dep_per = sum(mpi_data_15$hcost_dep * mpi_data_15$PERWT, na.rm =TRUE)/n
+# 
+# 
+# intensity = (income_censored_hc*.1 + fam_emp_censored_hc *.1 +
+#            health_censored_hc * .1 + education_censored_hc * .2 +
+#            overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 + disability_censored_hc *.1 +
+#            lang_dep_censored_hc*.1 + hcost_dep_censored_hc*.1)/ mpi_poor_hc
+# adj_hc = headcount*intensity
+# per_contrib_income = ((income_censored_hc/n)/adj_hc)*.1
+# per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.1
+# per_contrib_health = ((health_censored_hc/n)/adj_hc)*.1
+# per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2
+# per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1
+# per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.1
+# per_contrib_lang_dep = ((lang_dep_censored_hc/n)/adj_hc)*.1
+# per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1
+# per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1
 
 ```
 
@@ -278,24 +346,117 @@ per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1
 
 Below I show the headcount, intensity, and adjusted headcount for the U.S. in 2015. I also show the percent of the populatoin experiencing each indicator and the percent contribution each indicator makes to the index. 
 ```{r}
-headcount
-intensity
-adj_hc
+# headcount
+# intensity
+# adj_hc
+# 
+# col1 <- c(income_per,fam_emp_per,health_per,education_per, overcrowd_per, computer_internet_per, disability_per, 
+#         lang_dep_per, hcost_dep_per)
+# col1 <- round(col1, 2)
+# col2 <- c(per_contrib_income, per_contrib_fam_emp, per_contrib_health, per_contrib_education, 
+#           per_contrib_overcrowd, per_contrib_computer_internet, per_contrib_disability, per_contrib_lang_dep,
+#           per_contrib_hcost_dep)
+# col2 <- round(col2, 2)
+# 
+# ind_table <- cbind(col1, col2)
+# rownames(ind_table) <- c("Income", "Employment", "Health", "Education", "Overcrowding", "Internet", "Disability",
+#                          "Language", "Housing Cost")
+# colnames(ind_table) <- c("Incidence", "Contribution")
+# 
+# print(ind_table)
+# 
+# library(stargazer)
+# stargazer(ind_table[,1:2], title = "Incidence of each MPI Indicator")
+# stargazer(ind_table[,c(1,3)], title = "Contribution to Adjusted Headcount of each MPI Indicator")
 
-col1 <- c(income_per,fam_emp_per,health_per,education_per, overcrowd_per, computer_internet_per, disability_per, 
-        lang_dep_per, hcost_dep_per)
-col1 <- round(col1, 2)
-col2 <- c(per_contrib_income, per_contrib_fam_emp, per_contrib_health, per_contrib_education, 
-          per_contrib_overcrowd, per_contrib_computer_internet, per_contrib_disability, per_contrib_lang_dep,
-          per_contrib_hcost_dep)
-col2 <- round(col2, 2)
-
-ind_table <- cbind(col1, col2)
-rownames(ind_table) <- c("Income", "Employment", "Health", "Education", "Overcrowding", "Internet", "Disability",
-                         "Language", "Housing Cost")
-colnames(ind_table) <- c("Incidence", "Contribution")
-
-print(ind_table)
 ```
 
+Breakdown by Metro status
+
+```{r}
+
+
+
+# metro_mpi <- mpi_data_15 %>%
+#   group_by(METRO) %>%
+#   summarise(headcount = sum(mpi_poor*PERWT)/sum(PERWT),
+#             income_censored_hc = sum(income_poverty[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm =TRUE),
+#             fam_emp_censored_hc = sum(fam_emp[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             health_censored_hc = sum(health[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             education_censored_hc = sum(education[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             overcrowd_censored_hc = sum(overcrowd[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             computer_internet_censored_hc = sum(computer_internet[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             disability_censored_hc = sum(disability[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             lang_dep_censored_hc = sum(lang_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+#             hcost_dep_censored_hc = sum(hcost_dep[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm = TRUE),
+# 
+#             mpi_poor_hc = sum(mpi_poor*PERWT, na.rm = TRUE),
+#             n = sum(PERWT),
+#             income_per = sum(income_poverty * PERWT)/n,
+#             fam_emp_per = sum(fam_emp * PERWT)/n,
+#             health_per = sum(health * PERWT)/n,
+#             education_per = sum(education * PERWT)/n,
+#             overcrowd_per = sum(overcrowd * PERWT)/n,
+#             computer_internet_per = sum(computer_internet * PERWT)/n,
+#             disability_per = sum(disability * PERWT)/n,
+#             lang_dep_per = sum(lang_dep * PERWT)/n,
+#             hcost_dep_per = sum(hcost_dep * PERWT)/n)
+# 
+# 
+# metro_mpi <- metro_mpi %>%
+#   mutate(intensity = (income_censored_hc*.1 + fam_emp_censored_hc *.1 +
+#            health_censored_hc * .1 + education_censored_hc * .2 +
+#            overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 +
+#            disability_censored_hc * .1 + lang_dep_censored_hc * .1 + hcost_dep_per * .1)/ mpi_poor_hc,
+#          adj_hc = headcount*intensity,
+#          per_contrib_income = ((income_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_health = ((health_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2,
+#          per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_lang_dep = ((lang_dep_censored_hc/n)/adj_hc)*.1,
+#          per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1)%>%
+#   select(METRO, n, headcount, intensity, adj_hc, per_contrib_income, per_contrib_fam_emp, 
+#          per_contrib_health, per_contrib_education, per_contrib_overcrowd, per_contrib_computer_internet,
+#          per_contrib_disability, per_contrib_lang_dep, per_contrib_hcost_dep)
+# 
+# metro_mpi$METRO <- recode(metro_mpi$METRO, `0` = "Not identifiable", `1` = "Not in Metro Area", `2` = "In Metro Area, Central/Principal City", `3` = "In Metro Area,Outside Central/Principal City", `4` = "Central/Principal City status unknown")
+# 
+
+
+
+```
+
+Breakdown by gender
+```{r}
+gender_tbl <- svyby(~mpi_poor+income_poverty+fam_emp+health+disability+education+overcrowd+hcost_dep+ computer_internet+lang_dep, ~I(SEX == 1),design=svy_df, svymean)
+
+female_value_vector <- gender_tbl[1, 2:11]
+male_value_vector <- gender_tbl[2, 2:11]
+female_se_vector <- gender_tbl[1, 12:21]
+male_se_vector <- gender_tbl[2, 12:21]
+female_value_vector <- t(female_value_vector)
+male_value_vector <- t(male_value_vector)
+female_se_vector <- t(female_se_vector)
+male_se_vector <- t(male_se_vector)
+
+
+gender_df <- cbind.data.frame(female_value_vector, female_se_vector, male_value_vector, female_se_vector)
+names(gender_df) <- c("Female Mean", "Female SE", "Male Mean", "Male SE")
+row.names(gender_df) <- c("MPI Poor", "Income", "Employment", "Health Insurance", "Disability", "Education", "Overcrowding", "Housing Cost", "Internet", "Linguistic Isolation")
+
+per_contrib_fem <- (gender_df$`Female Mean`[2:10]/adjusted_hc)*weights
+per_contrib_male <- (gender_df$`Male Mean`[2:10]/adjusted_hc)*weights
+per_contrib_gender <- cbind.data.frame(per_contrib_fem, per_contrib_male)
+names(per_contrib_gender) <- c("Female", "Male")
+row.names(per_contrib_gender) <- c("MPI Poor", "Income", "Employment", "Health Insurance", "Disability", "Education", "Overcrowding", "Housing Cost", "Internet", "Linguistic Isolation")
+
+
+gender_df <- gender_df*100
+stargazer(gender_df, summary = FALSE, title = "Indicator Incidence by Gender", digits = 2, align = TRUE)
+
+
+```
 
