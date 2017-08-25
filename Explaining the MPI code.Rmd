@@ -447,15 +447,33 @@ gender_df <- cbind.data.frame(female_value_vector, female_se_vector, male_value_
 names(gender_df) <- c("Female Mean", "Female SE", "Male Mean", "Male SE")
 row.names(gender_df) <- c("MPI Poor", "Income", "Employment", "Health Insurance", "Disability", "Education", "Overcrowding", "Housing Cost", "Internet", "Linguistic Isolation")
 
-per_contrib_fem <- (gender_df$`Female Mean`[2:10]/adjusted_hc)*weights
-per_contrib_male <- (gender_df$`Male Mean`[2:10]/adjusted_hc)*weights
+gender_tbl_cen <- svyby(~mpi_poor+income_poverty+fam_emp+health+disability+education+overcrowd+hcost_dep+ computer_internet+lang_dep, ~I(SEX == 1),design=cen_svy_df, svymean)
+
+female_value_vector <- gender_tbl_cen[1, 2:11]
+male_value_vector <- gender_tbl_cen[2, 2:11]
+female_se_vector <- gender_tbl_cen[1, 12:21]
+male_se_vector <- gender_tbl_cen[2, 12:21]
+female_value_vector <- t(female_value_vector)
+male_value_vector <- t(male_value_vector)
+female_se_vector <- t(female_se_vector)
+male_se_vector <- t(male_se_vector)
+
+
+gender_cen_df <- cbind.data.frame(female_value_vector, female_se_vector, male_value_vector, female_se_vector)
+names(gender_cen_df) <- c("Female Mean", "Female SE", "Male Mean", "Male SE")
+row.names(gender_cen_df) <- c("MPI Poor", "Income", "Employment", "Health Insurance", "Disability", "Education", "Overcrowding", "Housing Cost", "Internet", "Linguistic Isolation")
+
+per_contrib_fem <- (gender_cen_df$`Female Mean`[2:10]/adjusted_hc)*weights
+per_contrib_male <- (gender_cen_df$`Male Mean`[2:10]/adjusted_hc)*weights
 per_contrib_gender <- cbind.data.frame(per_contrib_fem, per_contrib_male)
 names(per_contrib_gender) <- c("Female", "Male")
-row.names(per_contrib_gender) <- c("MPI Poor", "Income", "Employment", "Health Insurance", "Disability", "Education", "Overcrowding", "Housing Cost", "Internet", "Linguistic Isolation")
+row.names(per_contrib_gender) <- c("Income", "Employment", "Health Insurance", "Disability", "Education", "Overcrowding", "Housing Cost", "Internet", "Linguistic Isolation")
 
 
 gender_df <- gender_df*100
+per_contrib_gender <- per_contrib_gender*100
 stargazer(gender_df, summary = FALSE, title = "Indicator Incidence by Gender", digits = 2, align = TRUE)
+stargazer(per_contrib_gender, summary = FALSE, title = "Percent Contribution to Index by Gender", digits = 2, align = TRUE)
 
 
 ```
