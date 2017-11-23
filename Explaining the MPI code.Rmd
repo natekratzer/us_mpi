@@ -16,23 +16,20 @@ A multidimensional poverty index attempts to capture a more accurate measurement
 
 This document shows how to construct a multidimensional poverty index for the United States using Census data from the American Community Survey and code in the R programming language. 
 
-The index uses nine indicators across six dimensions
+The index uses nine indicators across three dimensions
 
 1. Economic
     + Income Poverty
     + Employment
-2. Health
+    + Housing Costs
+2. Educational
+    + Educational Attainment
+    + Internet Access
+    + Linguistic Isolation
+3. Health
     + Insurance
     + Disability
-3. Housing
-    + Cost of Housing
     + Overcrowding
-4. Social Connections
-    + Linguistic Isolation
-    + Internet Access
-5. Education
-    + Educational Attainment
-
 
 ##The initial data
 
@@ -41,12 +38,10 @@ Data comes from IPUMS USA and covers 2013, 2014, and 2015. I have commented out 
 ```{r data, message = FALSE}
 library(survey)
 library(stargazer)
-library(dplyr)
-library(readr)
+library(tidyverse)
 library(feather)
 
 #data = read_csv("C:/Users/natek/Documents/usa_00007.csv")
-
 #write_feather(data, "C:/Users/natek/Documents/MPI feather.feather")
 
 data = read_feather("C:/Users/natek/Documents/MPI feather.feather")
@@ -107,27 +102,34 @@ Education deprivation is at the individual level. It is calculated differently f
 ```{r education, message = FALSE}
 data$education = if_else(data$EDUCD < 62 & data$AGE > 18 & data$EDUCD !=1, 1, 0) #less than hs, over 18, not NA
 
-data$grade_recode = NA ##where GRADEATTD == 0, it stays NA, everywhere else it changes. 0 is NA in GRADEATTD codebook
-data$grade_recode[data$GRADEATTD < 30 & data$GRADEATTD != 0] = 0
-data$grade_recode[data$GRADEATTD == 30] = 4
-data$grade_recode[data$GRADEATTD == 31] = 1
-data$grade_recode[data$GRADEATTD == 32] = 2
-data$grade_recode[data$GRADEATTD == 33] = 3
-data$grade_recode[data$GRADEATTD == 34] = 4
-data$grade_recode[data$GRADEATTD == 40] = 8
-data$grade_recode[data$GRADEATTD == 41] = 5
-data$grade_recode[data$GRADEATTD == 42] = 6
-data$grade_recode[data$GRADEATTD == 43] = 7
-data$grade_recode[data$GRADEATTD == 44] = 8
-data$grade_recode[data$GRADEATTD == 50] = 12
-data$grade_recode[data$GRADEATTD == 51] = 9
-data$grade_recode[data$GRADEATTD == 52] = 10
-data$grade_recode[data$GRADEATTD == 53] = 11
-data$grade_recode[data$GRADEATTD == 54] = 12
-data$grade_recode[data$GRADEATTD > 59] = 120
+# data$grade_recode = NA ##where GRADEATTD == 0, it stays NA, everywhere else it changes. 0 is NA in GRADEATTD codebook
+# data$grade_recode[data$GRADEATTD < 30 & data$GRADEATTD != 0] = 0
+# data$grade_recode[data$GRADEATTD == 30] = 4
+# data$grade_recode[data$GRADEATTD == 31] = 1
+# data$grade_recode[data$GRADEATTD == 32] = 2
+# data$grade_recode[data$GRADEATTD == 33] = 3
+# data$grade_recode[data$GRADEATTD == 34] = 4
+# data$grade_recode[data$GRADEATTD == 40] = 8
+# data$grade_recode[data$GRADEATTD == 41] = 5
+# data$grade_recode[data$GRADEATTD == 42] = 6
+# data$grade_recode[data$GRADEATTD == 43] = 7
+# data$grade_recode[data$GRADEATTD == 44] = 8
+# data$grade_recode[data$GRADEATTD == 50] = 12
+# data$grade_recode[data$GRADEATTD == 51] = 9
+# data$grade_recode[data$GRADEATTD == 52] = 10
+# data$grade_recode[data$GRADEATTD == 53] = 11
+# data$grade_recode[data$GRADEATTD == 54] = 12
+# data$grade_recode[data$GRADEATTD > 59] = 120
+# 
+# 
+# data$education[data$AGE < 19 & ((data$GRADEATTD+6) < data$AGE)] = 1 ##If age is more than 6 years above grade level
 
+data = data %>%
+  group_by(SERIAL, YEAR) %>%
+  mutate(fam_edu = if_else(any(EDUCD > 80), 0, 1))
 
-data$education[data$AGE < 19 & ((data$GRADEATTD+6) < data$AGE)] = 1 ##If age is more than 6 years above grade level
+data$education[data$AGE < 19] <- 0
+data$education[data$AGE < 19 & (data$ fam_edu == 1)] <- 1
 
 ```
 
@@ -190,6 +192,7 @@ Saving only the data that is used to construct the index, as well as a few group
 ```{r subset}
 mpi_data = data %>%
   select(YEAR, SERIAL, PERWT, SEX, METRO, STATEFIP, income_poverty, fam_emp, health, education, overcrowd, computer_internet, lang_dep, hcost_dep, disability)
+rm(data) # removing to save memory
 
 ```
 
@@ -201,17 +204,29 @@ Each of the five dimensions is equally weighted (.2). For the dimensions with tw
 I define MPI poor as being poor in 3 or more weighted indicators, with Education being weighted at .2 because it is the only indicator in its dimension. Thus, a weighted score of over .29 is MPI poor. 
 
 ```{r mpi poor}
-mpi_data$mpi_score = mpi_data$income_poverty*.1 + 
-  mpi_data$fam_emp *.1 + 
-  mpi_data$health*.1 + 
-  mpi_data$education*.2 +
-  mpi_data$overcrowd*.1 +
-  mpi_data$computer_internet*.1 + 
-  mpi_data$disability*.1 +
-  mpi_data$lang_dep * .1 +
-  mpi_data$hcost_dep * .1
+mpi_data$mpi_score = mpi_data$income_poverty*(1/9) + 
+  mpi_data$fam_emp *(1/9) + 
+  mpi_data$health*(1/6) + 
+  mpi_data$education*(1/6) +
+  mpi_data$overcrowd*(1/12) +
+  mpi_data$computer_internet*(1/12) + 
+  mpi_data$disability*(1/12) +
+  mpi_data$lang_dep * (1/12) +
+  mpi_data$hcost_dep * (1/9)
 
-mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .29, 1, 0)
+mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .32, 1, 0)
+
+mpi_data$mpi_score_no_inc =  
+  mpi_data$fam_emp *(1/6) + 
+  mpi_data$health*(1/6) + 
+  mpi_data$education*(1/6) +
+  mpi_data$overcrowd*(1/12) +
+  mpi_data$computer_internet*(1/12) + 
+  mpi_data$disability*(1/12) +
+  mpi_data$lang_dep * (1/12) +
+  mpi_data$hcost_dep * (1/6)
+
+mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .32, 1, 0)
 
 mpi_data_15 <- mpi_data %>% filter(YEAR == 2015)
 ```
@@ -227,7 +242,6 @@ rm(mpi_data)
 ##National Alkire-Foster Index
 
 Here I calculate an AF index for the U.S. in 2015. 
-
 ```{r}
 censored_mpi_data_15 <- mpi_data_15
 censored_mpi_data_15[censored_mpi_data_15$mpi_poor == 0, 7:15] <- 0
@@ -272,11 +286,15 @@ per_contrib_df <- per_contrib_df *100
 inc_mpi_crosstab <- svytable(~income_poverty+mpi_poor, design = svy_df, Ntotal = 100)
 inc_mpi_crosstab <- ftable(inc_mpi_crosstab)
 
+no_inc_mpi_crosstab <- svytable(~income_poverty+mpi_poor_no_inc, design = svy_df, Ntotal = 100)
+no_inc_mpi_crosstab <- ftable(no_inc_mpi_crosstab)
+
 stargazer(mpi_overview, title = "MPI Overview", digits = 2, align = TRUE)
 stargazer(incidence_table, summary = FALSE, title = "Incidence", digits = 2, align = TRUE)
 stargazer(per_contrib_df, summary = FALSE, title = "Percent Contribution to Adjusted Headcount", 
           digits = 2, align = TRUE)
 stargazer(inc_mpi_crosstab, title = "Income Poor v. MPI Poor", digits = 2, align = TRUE)
+stargazer(no_inc_mpi_crosstab, title = "Income Poor v. MPI Poor (Income not included in MPI)", digits = 2, align = TRUE)
 
 
 # survey_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data_15)
@@ -339,6 +357,42 @@ stargazer(inc_mpi_crosstab, title = "Income Poor v. MPI Poor", digits = 2, align
 # per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1
 # per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1
 
+```
+
+
+```{r}
+library(VennDiagram)
+grid.newpage()
+draw.pairwise.venn(16.7, 15.5, 8.4, category = c("Income Poor", "MPI Poor"), lty = rep("blank", 
+    2), fill = c("red", "blue"), alpha = rep(0.5, 2), cat.pos = c(0, 
+    0), cat.dist = rep(0.025, 2))
+```
+
+
+finding the standard error for the MPI table
+```{r}
+vcov(svymean(~mpi_poor+mpi_score, cen_svy_df)) ## gives covariance of xy
+
+vcov(svymean(~mpi_poor^2+mpi_score^2, cen_svy_df))
+
+svymean(~mpi_poor+mpi_score, cen_svy_df)
+
+```
+```{r}
+#cov of squares plus mean of x squared plus variance of x times mean of y squared plus variance of y
+n <- 3147005  
+expected_squares <- 2.47*10^-8 + (.164^2 + (3*10^-4)^2)/n * (.104^2 +(1*10^-4)^2)/n  
+   
+#mean of x times mean of y plus covariance of x and y
+expected_product  <- (.164 * .104)/n + (2.47 * 10^-8)
+
+expected_squares
+expected_product
+temp_ans <- sqrt(expected_squares - expected_product^2)
+temp_ans
+temp_ans*100
+  
+    
 ```
 
 

@@ -1,0 +1,177 @@
+---
+title: "A Multidimensional Poverty Index for the U.S."
+subtitle: "???<br/>A Dissertation Talk"
+author: "Nate Kratzer"
+date: "2016/12/12"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+---
+class: inverse, middle, center
+
+# Preamble
+
+
+---
+# Not Quite a Job Talk
+
+- I have job: Data Science Analyst at Brown-Forman
+- But I still need faculty feedback on my academic work
+- Focus is on areas of the dissertation that need the most help
+
+---
+# The Brown-Forman Job
+
+- The second round interview was a job talk on a sample analytics project
+  + I was given one hour.
+  + I presented for 8 minutes. 
+
+- Two projects so far
+  + Sustainability of White Oak Trees
+  + Demographic Data for Sales
+---
+
+# Dissertation Schedule
+
+- I have a plan for finishing with a full-time job
+  + 10 hours on weekends (5 hrs each morning)
+  + 4.5 hours on evenings (3 evenings of 1.5 hrs)
+- The plan includes public accountability
+  + Chapters 1 (Theory) and 3 (Index Construction) revised and done by end of Dec.
+  + Chapter 2 (Lit Review) by end of Jan.
+  + Chapter 4 (Index Validation) by end of Feb.
+  + Chapter 5 (Index Usefulness) by April 21
+- Feel free to ask me if I'm on schedule and publicly shame me if I'm not. 
+  
+
+---
+class: inverse, middle, center
+
+# A Multidimensional Poverty Index for the U.S.
+
+---
+
+# Motivation
+
+- The current poverty line is terrible
+  + It has no defenders, the only debate is how to replace it.
+- International Development research has suggested a better way 
+  + A multidimensional poverty index
+- The goal of this project is a little different than a typical paper
+  + I am not trying to establish causal relationships
+  + I am trying to measure something better to aid in future research
+  + Closer to building a microscope than conducting research with a microscope
+  + Goal is a clearer vision of the actual experience of poverty/deprivation
+  + Final dissertation chapter gives examples of use
+
+---
+
+# Problems with the poverty line
+
+- Outdated
+- No geographical adjustment
+- Only counts income
+
+
+---
+
+# Goals of Poverty Measurement
+
+- Capture what we intuitively mean when we talk about individuals/families in poverty. 
+  + Experiencing substantive deprivations in one or more areas of life.
+- Neutral about how resources are provided (e.g. purchased, in-kind charitable, government provided, etc.)
+- Measures depth of poverty
+  + Welfare Reform in 1996 increased deep poverty
+
+---
+
+# Normative Claims in Constructing the Index
+
+- I am claiming that each measure in index is valuable in and of itself
+- Example: Education is valuable apart from its role in increasing income
+  + If you don't believe this, then you should place zero weight on the education indicator
+- The current normative claim embodied in the official poverty measure is that other things are only valuable if they lead to increased income
+  + Consider it an index where all the weight is placed on the income category
+  + Preview: I don't have a perfect weighting scheme, but can do better than placing 100% on income
+
+---
+
+# The Capabilities Approach to Measurement
+
+- Measure _ends_ not _means_
+- The goal is flourishing (Eudaimonia)
+- Capabilities are a measurement of human freedom to achieve various lifestyles
+  + Implies positive freedom and not solely freedom from coercion
+- Human beings have widely varying tastes, but there is a minimum standard of basic capabilities
+  + Ex: Food distribution and famine
+  
+---
+
+# Multidimensional Poverty Indices in International Development
+
+- Oxford Poverty and Human Development Initiative
+
+---
+
+# MPIs in the U.S.
+
+---
+
+# Structure of Proposed MPI
+
+1. Economic (1/3)
+    + Income Poverty (1/3)
+    + Employment (1/3)
+    + Housing Costs (1/3)
+2. Educational (1/3)
+    + Educational Attainment (1/2)
+    + Internet Access (1/4)
+    + Linguistic Isolation (1/4)
+3. Health (1/3)
+    + Insurance (1/2)
+    + Disability (1/4)
+    + Overcrowding (1/4)
+    
+- Division into three dimensions based on Multiple Correspondence Analysis and Interpretability
+    
+---
+
+# Weights
+
+- Multiple correspondence analysis (PCA for dummy variables)
+
+---
+
+# Data
+
+- IPUMS American Community Survey Microdata, 2013-2015
+- Index requires data at individual level to measure joint distribution of deprivations
+  + This is the one of the reasons for an index instead of a dashboard. 
+
+
+
+
+---
+
+# Alkire - Foster Indexing
+
+---
+
+# U.S. Results
+
+---
+
+# State Results
+
+
+

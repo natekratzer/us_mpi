@@ -193,23 +193,50 @@ stargazer(p_table, title = "p-values from Chi Sq test")
 
 ```
 
+MCA on Kentucky Data
+
+```{r}
+mpi_data_15 <- mpi_data_15 %>% ungroup()
+
+mpi_mca <- mpi_data_15 %>%
+  select(PERWT, income_poverty, fam_emp, health, education, overcrowd, computer_internet, lang_dep, hcost_dep, disability)
+```
+
+```{r}
+shape_MCA <- function(x){
+  recode(x, `1` = "yes", `0` = "no")
+  as.factor(x)
+}
+
+mpi_mca[,2:10] <- lapply(mpi_mca[,2:10], shape_MCA)
+
+```
+
+```{r}
+res <- MCA(mpi_mca[,-1], row.w = mpi_mca$PERWT)
+```
+
+```{r}
+summary(res, ncp = 5)
+```
+
 
 Bootstrapping the MPI
 ```{r}
-df_boot <- mpi_data_15 %>% select(mpi_poor, PERWT)
-
-df_length <- nrow(mpi_data_15)
-
-nboot <- 1000
-boot_mean <- vector(length = nboot)
-
-for (i in 1:nboot) {
-  df_boot[sample(nrow(df_boot), size = df_length, replace = TRUE), ]
-  boot_mean[i] = sum(df_boot$mpi_poor*df_boot$PERWT, na.rm = TRUE)/sum(df_boot$PERWT)
-}
-
-
-bootstrap_mean <- mean(boot_mean)
-ci <- quantile(boot_mean, c(.025, .975))
+# df_boot <- mpi_data_15 %>% select(mpi_poor, PERWT)
+# 
+# df_length <- nrow(mpi_data_15)
+# 
+# nboot <- 1000
+# boot_mean <- vector(length = nboot)
+# 
+# for (i in 1:nboot) {
+#   df_boot[sample(nrow(df_boot), size = df_length, replace = TRUE), ]
+#   boot_mean[i] = sum(df_boot$mpi_poor*df_boot$PERWT, na.rm = TRUE)/sum(df_boot$PERWT)
+# }
+# 
+# 
+# bootstrap_mean <- mean(boot_mean)
+# ci <- quantile(boot_mean, c(.025, .975))
 ```
 

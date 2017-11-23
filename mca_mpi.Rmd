@@ -1,0 +1,75 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(FactoMineR)
+library(tidyverse)
+```
+
+
+```{r}
+tea_df <- read.table("C:/Users/natek/Downloads/data_MCA_tea.csv", header = TRUE, sep = ";")
+```
+
+```{r}
+glimpse(tea_df)
+```
+
+```{r}
+# MCA with the graphs given by default
+res <- MCA(tea_df, quanti.sup=19, quali.sup=c(20:36))
+summary(res, ncp=3, nbelements=Inf)    ## fonction summary.MCA
+```
+
+
+```{r}
+
+
+# decription of the dimensions
+dimdesc(res)
+
+# Graph with some labels
+plot(res, label=c("var","quali.sup"), cex=0.7)
+
+# Graphs with selection of elements
+plot(res, invisible=c("var","quali.sup"), cex=0.7)
+plot(res, invisible=c("ind","quali.sup"),autoLab="y",cex=0.7,title="Active categories")
+plot(res, invisible=c("ind","var"),autoLab="y",cex=0.7,title="Supplementary categories")
+
+# Selection of some categories
+plot(res, invisible="ind",autoLab="y",cex=0.7,selectMod="cos2 10")
+plot(res, invisible="ind",autoLab="y",cex=0.7,selectMod="contrib 20")
+
+# Selection of some individuals
+plot(res, invisible=c("var","quali.sup"),autoLab="y",cex=0.7,select="cos2 20")
+
+# Selection of some categories and some individuals
+plot(res, autoLab="y",cex=0.7, select="cos2 20", selectMod="cos2 10")
+
+# Graphs of the variables
+plot(res, choix="var",xlim=c(0,0.6),ylim=c(0,0.6))
+plot(res, choix="var",xlim=c(0,0.6),ylim=c(0,0.6),invisible=c("quali.sup","quanti.sup"))
+
+# Graphs on dimensions 3 and 4
+plot(res,invisible=c("var","quali.sup"),cex=0.7,select="contrib 20",axes=3:4)
+plot(res, invisible="ind",autoLab="y",cex=0.7,selectMod="cos2 20",axes=3:4)
+
+# Confidence ellipses around the categories for the variables 14 to 17
+plotellipses(res,keepvar=c(14:17))
+
+```
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
