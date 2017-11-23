@@ -289,73 +289,23 @@ inc_mpi_crosstab <- ftable(inc_mpi_crosstab)
 no_inc_mpi_crosstab <- svytable(~income_poverty+mpi_poor_no_inc, design = svy_df, Ntotal = 100)
 no_inc_mpi_crosstab <- ftable(no_inc_mpi_crosstab)
 
+```
+
+```{r csv}
+write_csv(mpi_overview, "output_data/mpi_overview.csv")
+write_csv(incidence_table, "output_data/incidence_table.csv")
+write_csv(per_contrib_df, "output_data/per_contrib_df.csv")
+write_csv(inc_mpi_crosstab, "output_data/inc_mpi_crosstab.csv")
+write_csv(no_inc_mpi_crosstab, "output_data/no_inc_mpi_crosstab.csv")
+```
+
+```{r stargazer, eval = FALSE}
 stargazer(mpi_overview, title = "MPI Overview", digits = 2, align = TRUE)
 stargazer(incidence_table, summary = FALSE, title = "Incidence", digits = 2, align = TRUE)
 stargazer(per_contrib_df, summary = FALSE, title = "Percent Contribution to Adjusted Headcount", 
           digits = 2, align = TRUE)
 stargazer(inc_mpi_crosstab, title = "Income Poor v. MPI Poor", digits = 2, align = TRUE)
 stargazer(no_inc_mpi_crosstab, title = "Income Poor v. MPI Poor (Income not included in MPI)", digits = 2, align = TRUE)
-
-
-# survey_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data_15)
-# 
-# svymean(~overcrowd+income_poverty+fam_emp, design = survey_df)
-# svyby(~overcrowd+income_poverty+fam_emp, ~I(SEX == 1),design=survey_df, svymean)
-# 
-# 
-# svyttest(overcrowd~SEX, survey_df)
-# svyby(~overcrowd,~I(SEX == 1),design=survey_df, svymean)
-# summary(svyglm(overcrowd~I(SEX == 1)+0,design = survey_df))
-# 
-# 
-# 
-# headcount = sum(mpi_data_15$mpi_poor*mpi_data_15$PERWT, na.rm = TRUE)/sum(mpi_data_15$PERWT)
-# 
-# income_censored_hc = sum(mpi_data_15$income_poverty[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-# 
-# fam_emp_censored_hc = sum(mpi_data_15$fam_emp[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-# 
-# health_censored_hc = sum(mpi_data_15$health[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-# 
-# education_censored_hc = sum(mpi_data_15$education[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-# 
-# overcrowd_censored_hc = sum(mpi_data_15$overcrowd[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-# 
-# computer_internet_censored_hc = sum(mpi_data_15$computer_internet[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm = TRUE)
-# 
-# disability_censored_hc = sum(mpi_data_15$disability[mpi_data_15$mpi_poor == 1]* mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-# 
-# lang_dep_censored_hc = sum(mpi_data_15$lang_dep[mpi_data_15$mpi_poor == 1]*mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-# 
-# hcost_dep_censored_hc = sum(mpi_data_15$hcost_dep[mpi_data_15$mpi_poor == 1]*mpi_data_15$PERWT[mpi_data_15$mpi_poor == 1], na.rm =TRUE)
-# 
-# mpi_poor_hc = sum(mpi_data_15$mpi_poor*mpi_data_15$PERWT, na.rm = TRUE)
-# n = sum(mpi_data_15$PERWT)
-# income_per = sum(mpi_data_15$income_poverty * mpi_data_15$PERWT)/n
-# fam_emp_per = sum(mpi_data_15$fam_emp * mpi_data_15$PERWT)/n
-# health_per = sum(mpi_data_15$health * mpi_data_15$PERWT)/n
-# education_per = sum(mpi_data_15$education * mpi_data_15$PERWT)/n
-# overcrowd_per = sum(mpi_data_15$overcrowd * mpi_data_15$PERWT)/n
-# computer_internet_per = sum(mpi_data_15$computer_internet * mpi_data_15$PERWT)/n
-# disability_per = sum(mpi_data_15$disability * mpi_data_15$PERWT)/n
-# lang_dep_per = sum(mpi_data_15$lang_dep * mpi_data_15$PERWT)/n
-# hcost_dep_per = sum(mpi_data_15$hcost_dep * mpi_data_15$PERWT, na.rm =TRUE)/n
-# 
-# 
-# intensity = (income_censored_hc*.1 + fam_emp_censored_hc *.1 +
-#            health_censored_hc * .1 + education_censored_hc * .2 +
-#            overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 + disability_censored_hc *.1 +
-#            lang_dep_censored_hc*.1 + hcost_dep_censored_hc*.1)/ mpi_poor_hc
-# adj_hc = headcount*intensity
-# per_contrib_income = ((income_censored_hc/n)/adj_hc)*.1
-# per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.1
-# per_contrib_health = ((health_censored_hc/n)/adj_hc)*.1
-# per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2
-# per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1
-# per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.1
-# per_contrib_lang_dep = ((lang_dep_censored_hc/n)/adj_hc)*.1
-# per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1
-# per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1
 
 ```
 
@@ -398,7 +348,7 @@ temp_ans*100
 
 ##Printing Results
 
-Below I show the headcount, intensity, and adjusted headcount for the U.S. in 2015. I also show the percent of the populatoin experiencing each indicator and the percent contribution each indicator makes to the index. 
+Below I show the headcount, intensity, and adjusted headcount for the U.S. in 2015. I also show the percent of the population experiencing each indicator and the percent contribution each indicator makes to the index. 
 ```{r}
 # headcount
 # intensity
@@ -427,7 +377,7 @@ Below I show the headcount, intensity, and adjusted headcount for the U.S. in 20
 
 Breakdown by Metro status
 
-```{r}
+```{r metro, eval = FALSE}
 
 
 
@@ -526,9 +476,18 @@ row.names(per_contrib_gender) <- c("Income", "Employment", "Health Insurance", "
 
 gender_df <- gender_df*100
 per_contrib_gender <- per_contrib_gender*100
+
+```
+
+```{r csv2}
+write_csv(gender_df, "output_data/gender_df.csv")
+write_csv(per_contrib_gender, "output_data/per_contrib_gender.csv")
+
+```
+
+
+```{r stargazer 2, eval = FALSE}
 stargazer(gender_df, summary = FALSE, title = "Indicator Incidence by Gender", digits = 2, align = TRUE)
 stargazer(per_contrib_gender, summary = FALSE, title = "Percent Contribution to Index by Gender", digits = 2, align = TRUE)
-
-
 ```
 

@@ -104,6 +104,19 @@ class: inverse, middle, center
   + Consider it an index where all the weight is placed on the income category
   + Preview: I don't have a perfect weighting scheme, but can do better than placing 100% on income
 
+
+--- 
+
+# Normative Claims and Information
+
+- "...the priorities that are accepted, often implicitly, in the different approaches to ethics, welfare economics, and political philosophy can be brought out and analyzed through identifying the information on which the evaluative judgments rely" (Sen 1999, p. 85)
+
+- Liberty for libertarians
+- Equality for egalitarians
+- Utility for utilitarians
+- Primary Goods for Rawlsians
+- Capabilities for the MPI
+
 ---
 
 # The Capabilities Approach to Measurement
@@ -173,5 +186,7 @@ class: inverse, middle, center
 
 # State Results
 
+---
 
+# Results by Gender
 
