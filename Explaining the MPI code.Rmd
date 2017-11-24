@@ -279,15 +279,15 @@ per_contrib_vector <- (cen_hc_table[1:9,1]/adjusted_hc)*weights
 per_contrib_df <- data.frame(per_contrib_vector)
 #names(per_contrib_df) <- row.names(incidence_table)[1:9]
   
-mpi_overview <- mpi_overview * 100
+mpi_overview <- as.data.frame(mpi_overview * 100)
 incidence_table <- incidence_table * 100
 per_contrib_df <- per_contrib_df *100
 
 inc_mpi_crosstab <- svytable(~income_poverty+mpi_poor, design = svy_df, Ntotal = 100)
-inc_mpi_crosstab <- ftable(inc_mpi_crosstab)
+inc_mpi_crosstab <- as.data.frame(ftable(inc_mpi_crosstab))
 
 no_inc_mpi_crosstab <- svytable(~income_poverty+mpi_poor_no_inc, design = svy_df, Ntotal = 100)
-no_inc_mpi_crosstab <- ftable(no_inc_mpi_crosstab)
+no_inc_mpi_crosstab <- as.data.frame(ftable(no_inc_mpi_crosstab))
 
 ```
 
@@ -310,7 +310,7 @@ stargazer(no_inc_mpi_crosstab, title = "Income Poor v. MPI Poor (Income not incl
 ```
 
 
-```{r}
+```{r, eval = FALSE, include = FALSE}
 library(VennDiagram)
 grid.newpage()
 draw.pairwise.venn(16.7, 15.5, 8.4, category = c("Income Poor", "MPI Poor"), lty = rep("blank", 
