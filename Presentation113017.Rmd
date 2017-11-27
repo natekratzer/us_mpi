@@ -19,6 +19,7 @@ options(htmltools.dir.version = FALSE)
 ```{r, include = FALSE}
 library(tidyverse)
 library(formattable)
+library(knitr)
 ```
 
 class: inverse, middle, center
@@ -165,7 +166,8 @@ class: inverse, middle, center
 
 # Weights
 
-- Multiple correspondence analysis (PCA for dummy variables)
+- Multiple correspondence analysis
+- PCA for dummies....the variables, not the analyst
 
 ---
 
@@ -176,12 +178,48 @@ class: inverse, middle, center
 - Index requires data at individual level to measure joint distribution of deprivations
   + This is the one of the reasons for an index instead of a dashboard. 
 
+---
 
+# Alkire-Foster Indexing (1)
 
+- Each indicator has a cutoff value. The index takes a matrix of 0s and 1s, with 1 indicating deprivation
+- Consider the first 10 people in the U.S. 2015 dataset:
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+sample_mpi_rows <- read_csv("output_data/few_rows_mpi.csv")
+names(sample_mpi_rows) <- c("Inc", "Emp", "Hlth", "Edu", "Crowd", "Int", "Ling", "House", "Dis", "MPI_S", "MPI")
+sample_mpi_rows$MPI_S <- round(sample_mpi_rows$MPI_S, 2)
+mpi_formatter <- function() {
+    formatter("span", 
+        style = ~ style(color = ifelse(`MPI_S` > .33, "blue", "black"))
+    )	 	 
+} 
+formattable(sample_mpi_rows, list(MPI_S = mpi_formatter(),
+                                  MPI = mpi_formatter(),
+                                  Inc = mpi_formatter(),
+                                  Emp = mpi_formatter(),
+                                  Hlth = mpi_formatter(),
+                                  Edu = mpi_formatter(),
+                                  Crowd = mpi_formatter(),
+                                  Int = mpi_formatter(),
+                                  Ling = mpi_formatter(),
+                                  House = mpi_formatter(),
+                                  Dis = mpi_formatter()))
+```
 
 ---
 
-# Alkire - Foster Indexing
+# A-F Indexing (2)
+
+- Two parts to poverty measurement
+  + Identification
+  + Aggregation
+- A-F Aggregation
+  + Headcount * Intensity
+  + Insensity is the mean deprivation score among the poor
+  + In previous table
+    + Four of 10 were poor, so headcount = 0.4
+    + Poverty scores were (.36, .36, .47, .36), intensity = `r c(.36, .36, .47, .36) %>% mean() %>% round(2)`
 
 ---
 

@@ -4,6 +4,7 @@
     <title>A Multidimensional Poverty Index for the U.S.</title>
     <meta charset="utf-8">
     <meta name="author" content="Nate Kratzer" />
+    <meta name="date" content="2017-11-30" />
     <link href="libs/remark-css/example.css" rel="stylesheet" />
   </head>
   <body>
@@ -11,9 +12,9 @@
 class: center, middle, inverse, title-slide
 
 # A Multidimensional Poverty Index for the U.S.
-## ???<br/>A Dissertation Talk
+## <br/>A Dissertation Talk
 ### Nate Kratzer
-### 2016/12/12
+### 11/30/2017
 
 ---
 
@@ -166,7 +167,8 @@ class: inverse, middle, center
 
 # Weights
 
-- Multiple correspondence analysis (PCA for dummy variables)
+- Multiple correspondence analysis
+- PCA for dummies....the variables, not the analyst
 
 ---
 
@@ -177,12 +179,177 @@ class: inverse, middle, center
 - Index requires data at individual level to measure joint distribution of deprivations
   + This is the one of the reasons for an index instead of a dashboard. 
 
+---
+
+# Alkire-Foster Indexing (1)
+
+- Each indicator has a cutoff value. The index takes a matrix of 0s and 1s, with 1 indicating deprivation
+- Consider the first 10 people in the U.S. 2015 dataset:
 
 
+&lt;table class="table table-condensed"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Inc &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Emp &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Hlth &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Edu &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Crowd &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Int &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Ling &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; House &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Dis &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; MPI_S &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; MPI &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0.36&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0.19&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0.36&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0.25&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0.47&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0.19&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0.00&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0.00&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0.00&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: black"&gt;0&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;0.36&lt;/span&gt; &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; &lt;span style="color: blue"&gt;1&lt;/span&gt; &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 
 ---
 
-# Alkire - Foster Indexing
+# A-F Indexing (2)
+
+- Two parts to poverty measurement
+  + Identification
+  + Aggregation
+- A-F Aggregation
+  + Headcount * Intensity
+  + Insensity is the mean deprivation score among the poor
+  + In previous table
+    + Four of 10 were poor, so headcount = 0.4
+    + Poverty scores were (.36, .36, .47, .36), intensity = 0.3875
 
 ---
 

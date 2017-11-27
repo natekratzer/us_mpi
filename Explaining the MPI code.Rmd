@@ -482,7 +482,7 @@ per_contrib_gender <- per_contrib_gender*100
 ```{r csv2}
 write_csv(gender_df, "output_data/gender_df.csv")
 write_csv(per_contrib_gender, "output_data/per_contrib_gender.csv")
-
+write_csv(mpi_data_15[1:10, 7:17],"output_data/few_rows_mpi.csv")
 ```
 
 
