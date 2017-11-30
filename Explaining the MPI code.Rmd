@@ -274,7 +274,7 @@ mpi_overview<- rbind(as.numeric(headcount), as.numeric(intensity), as.numeric(ad
 row.names(mpi_overview) <- c("headcount", "intensity", "adj_hc")
 colnames(mpi_overview) <- c("Value", "Standard Error")
 
-weights <- c(.1,.1,.1,.1,.2,.1,.1,.1,.1)
+weights <- c((1/9),(1/9),(1/6),(1/12),(1/6),(1/12),(1/9),(1/12),(1/12))
 per_contrib_vector <- (cen_hc_table[1:9,1]/adjusted_hc)*weights
 per_contrib_df <- data.frame(per_contrib_vector)
 #names(per_contrib_df) <- row.names(incidence_table)[1:9]

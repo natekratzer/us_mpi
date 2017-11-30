@@ -20,6 +20,8 @@ options(htmltools.dir.version = FALSE)
 library(tidyverse)
 library(formattable)
 library(knitr)
+library(leaflet)
+library(rgdal)
 ```
 
 class: inverse, middle, center
@@ -67,6 +69,19 @@ class: inverse, middle, center
 
 ---
 
+# Dissertation Outline
+
+- 5 Chapters
+  1. Theory
+  2. Lit Review
+  3. Index
+  4. Validation
+  5. Applications
+  
+I am mainly focused on 1, 3, and 5 in this presentation
+
+---
+
 # Motivation
 
 - The current poverty line is terrible
@@ -97,18 +112,22 @@ class: inverse, middle, center
   + Experiencing substantive deprivations in one or more areas of life.
 - Neutral about how resources are provided (e.g. purchased, in-kind charitable, government provided, etc.)
 - Measures depth of poverty
-  + Welfare Reform in 1996 increased deep poverty
+  + Welfare Reform in 1996 increased deep poverty. 
+  + Focused benefits on the working poor, who tended to be better off and closer to moving over the poverty line.
+  + From 1996 - 2011 the number of households living on under $2/day/person doubled to 1.5 million, including 3 million children (Edin and Shaefer 2015).
+- Compare across subgroups and over time. 
 
 ---
 
 # Normative Claims in Constructing the Index
 
 - I am claiming that each measure in index is valuable in and of itself
+  + Means/Ends or Hypothetical/Categorical Imperatives
 - Example: Education is valuable apart from its role in increasing income
   + If you don't believe this, then you should place zero weight on the education indicator
 - The current normative claim embodied in the official poverty measure is that other things are only valuable if they lead to increased income
   + Consider it an index where all the weight is placed on the income category
-  + Preview: I don't have a perfect weighting scheme, but can do better than placing 100% on income
+  + Preview: I don't have a perfect weighting scheme, but I can do better than placing 100% on income
 
 ---
 
@@ -132,16 +151,32 @@ class: inverse, middle, center
   + Implies positive freedom and not solely freedom from coercion
 - Human beings have widely varying tastes, but there is a minimum standard of basic capabilities
   + Ex: Food distribution and famine
+  + Instead of asking "What is the optimal state of the world?" ask, "Is state of the world A better or worse than state of the world B?"
   
 ---
 
 # Multidimensional Poverty Indices in International Development
 
 - Oxford Poverty and Human Development Initiative
-
+  + _Multidimensional Poverty Measurement and Analysis_ (2015)
+  
+- MPIs and income poverty are not well matched
+- Trends of non-income and income poverty are not matched
+- Economic growth does not guarantee poverty reduction
+- Dashboards overlook interconnections of deprivations among individuals
 ---
 
 # MPIs in the U.S.
+
+- 7 total proposed
+- Alkire-Foster 2009 as a quick example from 2004 National Health Interview Survey
+- Two most influential on my project
+  + Dhongde and Haveman (2016)
+  + Brookings (2016)
+- But both have major drawbacks I correct
+  + Children: Brookings excludes children and elderly. DH include, but by definition children can't be deprived in educational attainment (must be 18+ and lack H.S. degree)
+  + I propose additional indicators - internet, housing costs
+  + Brookings doesn't AF index, DH does but doesn't decompose index
 
 ---
 
@@ -166,8 +201,10 @@ class: inverse, middle, center
 
 # Weights
 
-- Multiple correspondence analysis
-- PCA for dummies....the variables, not the analyst
+- Multiple correspondence analysis used to determine dimensions, but not weights
+  + If used for weights, it would overweight rarer categories
+  + Substitutes a tough normative question with an easier empirical one - but they are different questions.
+- Multiple Correspondence Analysis is like PCA for dummies....the variables, not the analyst
 
 ---
 
@@ -177,6 +214,18 @@ class: inverse, middle, center
   + Just presenting on 2015 today. 
 - Index requires data at individual level to measure joint distribution of deprivations
   + This is the one of the reasons for an index instead of a dashboard. 
+  
+--- 
+
+# Defining the indicators for children
+
+- Indicators can be assigned to individuals (health insurance), families (income), households (employment), or mixed (education is individual for adults but household for children)
+
+- Education
+  + 19 and older are poor in this dimension with no high school degree. 
+  + 18 and younger are poor if they live in a household where no one has a high school degree
+- Employment
+  + Someone in the household is employed unless the entire household is retired or recieving substantial nonlabor income. 
 
 ---
 
@@ -215,34 +264,16 @@ formattable(sample_mpi_rows, list(MPI_S = mpi_formatter(),
   + Identification
   + Aggregation
 - A-F Aggregation
-  + Headcount * Intensity
+  + Adjusted Headcount = Headcount * Intensity
   + Insensity is the mean deprivation score among the poor
   + In previous table
     + Four of 10 were poor, so headcount = 0.4
     + Poverty scores were (.36, .36, .47, .36), intensity = `r c(.36, .36, .47, .36) %>% mean() %>% round(2)`
+    + Adjusted Headcount: `r c(.36, .36, .47, .36) %>% mean() %>% round(2) *0.4` 
 
 ---
 
-# U.S. Results
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-inc_mpi_crosstab <- read_csv("output_data/inc_mpi_crosstab.csv")
-
-inc_mpi_col1 <- unlist(unname(c(inc_mpi_crosstab[4,3], inc_mpi_crosstab[2,3])))
-inc_mpi_col2 <- unlist(unname(c(inc_mpi_crosstab[3,3], inc_mpi_crosstab[1,3])))
-inc_mpi_summary <- data_frame(inc_mpi_col1, inc_mpi_col2)
-names(inc_mpi_summary) <- c("Income Poor", "Not Income Poor")
-row.names(inc_mpi_summary) <- c("MPI Poor", "Not MPI Poor")
-inc_mpi_summary <- round(inc_mpi_summary, 2)
-```
-
-```{r, echo = FALSE, message = FALSE}
-formattable(inc_mpi_summary)
-```
-
----
-
-# Incidence of Each Indicator
+# Incidence of Each Indicator and MPI in U.S.
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 incidence_table <- read_csv("output_data/incidence_table.csv") 
 incidence_table <- round(incidence_table, 2)
@@ -252,6 +283,16 @@ formattable(incidence_table, list(`Uncensored Mean` = color_bar('lightblue', na.
 ```
 
 ---
+
+# A-F Indexing (3): Percent Contribution by Indicator
+
+$$\text{Percent Contribution} = \frac{\text{Censored Mean}}{\text{Adjusted Headcount}} \cdot \text{Weight}$$
+
+- Censored Mean: For all nonpoor assign all indicators a value of 0 (nondeprived)
+
+---
+
+# Percent contribution by indicator in the U.S. 
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 per_contrib_df <- read_csv("output_data/per_contrib_df.csv") %>% round(2)
@@ -263,7 +304,7 @@ formattable(per_contrib_df, list(`Percent Contribution to Index` = color_bar('li
 ---
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 gender_df <- read_csv("output_data/gender_df.csv") %>% round(2)
-row.names(gender_df) <- c("Income Poverty", "Employment", "Health", "Disability", "Education", "Overcrowd", "Housing Costs", "Internet", "Linguistic Isolation", "MPI")
+row.names(gender_df) <- c("MPI", "Income Poverty", "Employment", "Health", "Disability", "Education", "Overcrowd", "Housing Costs", "Internet", "Linguistic Isolation")
 formattable(gender_df, list(`Female Mean` = color_bar('lightblue', na.rm = TRUE),
                                   `Male Mean` = color_bar('lightblue', na.rm = TRUE)))
 
@@ -293,6 +334,23 @@ formattable(per_contrib_gender, list(`Male` = mgreater_formatter(),
 
 ---
 
+# MPI compared to Income Poverty
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+inc_mpi_crosstab <- read_csv("output_data/inc_mpi_crosstab.csv")
+
+inc_mpi_col1 <- unlist(unname(c(inc_mpi_crosstab[4,3], inc_mpi_crosstab[2,3])))
+inc_mpi_col2 <- unlist(unname(c(inc_mpi_crosstab[3,3], inc_mpi_crosstab[1,3])))
+inc_mpi_summary <- data_frame(inc_mpi_col1, inc_mpi_col2)
+names(inc_mpi_summary) <- c("Income Poor", "Not Income Poor")
+row.names(inc_mpi_summary) <- c("MPI Poor", "Not MPI Poor")
+inc_mpi_summary <- round(inc_mpi_summary, 2)
+formattable(inc_mpi_summary)
+```
+
+
+---
+
 # MPI with Income indicator excluded
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 no_inc_mpi_crosstab <- read_csv("output_data/no_inc_mpi_crosstab.csv")
@@ -310,7 +368,49 @@ formattable(no_inc_mpi_summary)
 
 # State Results
 
----
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+state_mpi_df <- read_csv("output_data/state_mpi_df.csv")
 
-# Results by Gender
+map_states <- readOGR("C:/Users/natek/Downloads/cb_2015_us_state_20m", layer = "cb_2015_us_state_20m",
+                     GDAL1_integer64_policy = TRUE, verbose = FALSE)
+
+map_states@data <- left_join(map_states@data, state_mpi_df, by = c('NAME' = 'State'))
+
+
+label_hc         <- paste("Headcount:     ", round(map_states@data$headcount*100, 1))
+label_int        <- paste("Intensity:        ", round(map_states@data$intensity*100, 1))
+label_adj_hc     <- paste("Adj. Headcount:", round(map_states@data$adj_hc*100, 1))
+
+
+labels <- sprintf(
+  "<strong>%s</strong><br/>%s<br/>%s<br/>%s",
+  map_states@data$NAME, label_adj_hc, label_hc, label_int
+) %>% lapply(htmltools::HTML)
+
+map_states@data$adj_hc_per <- map_states@data$adj_hc*100
+
+pal <- colorNumeric(
+  palette = "BuPu",
+  domain = map_states@data$adj_hc_per
+)
+
+
+leaflet(map_states) %>%
+  addTiles() %>%
+  addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+              opacity = 1.0, fillOpacity = 0.5,
+              fillColor = ~pal(adj_hc_per),
+              label = labels,
+              labelOptions = labelOptions(
+                style = list("font-weight" = "normal", padding = "3px 8px"),
+                textsize = "15px",
+                direction = "auto"))%>%
+  addLegend(pal = pal, values = ~adj_hc_per, opacity = 0.7, title = "Adj. Headcount",
+          position = "bottomright") %>%
+  setView(lng = -95, lat = 38.2527, zoom = 3)
+  
+```
+
+
+
 

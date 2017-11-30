@@ -41,40 +41,48 @@ intensity_df <- mpi_data_15 %>% filter(mpi_poor ==1)
 intensity_df <- svydesign(ids = ~1, weights = ~PERWT, data = intensity_df)
 
 intensity_tbl_st <- svyby(~income_poverty+fam_emp+health+disability+education+overcrowd+hcost_dep+
-                           computer_internet+lang_dep+mpi_poor, ~STATEFIP, design = intensity_df, svymean)
+                           computer_internet+lang_dep+mpi_score, ~STATEFIP, design = intensity_df, svymean)
+```
+
+```{r}
+getwd()
+```
 
 
-intensity_mpi <- intensity_tbl_st %>%
-  mutate(intensity = (income_poverty*(1/9) + 
-  fam_emp*(1/9) + 
-  health*(1/6) + 
-  education*(1/6) +
-  overcrowd*(1/12) +
-  computer_internet*(1/12) + 
-  disability*(1/12) +
-  lang_dep * (1/12) +
-  hcost_dep * (1/9)))
+```{r}
+state_mpi_df <- intensity_tbl_st %>%
+  select(STATEFIP, intensity = mpi_score)
+
+state_mpi_df_2 <- incidence_tbl_st %>%
+  select(STATEFIP, headcount = mpi_poor)
+
+state_mpi_df <- left_join(state_mpi_df, state_mpi_df_2, by = "STATEFIP")
+
+state_names <- read_csv("C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv")
+
+state_mpi_names <- left_join(state_mpi_df, state_names, by = "STATEFIP")
+
+state_mpi_names <- state_mpi_names %>% mutate(adj_hc = headcount * intensity)
+
+write_csv(state_mpi_names, "output_data/state_mpi_df.csv")
 
 
-# state_mpi <- state_mpi %>%
-#   mutate(intensity = (income_censored_hc*.1 + fam_emp_censored_hc *.1 +
-#            health_censored_hc * .1 + education_censored_hc * .2 +
-#            overcrowd_censored_hc * .1 + computer_internet_censored_hc * .1 +
-#            disability_censored_hc * .1 + lang_dep_censored_hc * .1 + hcost_dep_per * .1)/ mpi_poor_hc,
-#          adj_hc = headcount*intensity,
-#          per_contrib_income = ((income_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_fam_emp = ((fam_emp_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_health = ((health_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_education = ((education_censored_hc/n)/adj_hc)*.2,
-#          per_contrib_overcrowd = ((overcrowd_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_computer_internet = ((computer_internet_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_disability = ((disability_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_lang_dep = ((lang_dep_censored_hc/n)/adj_hc)*.1,
-#          per_contrib_hcost_dep = ((hcost_dep_censored_hc/n)/adj_hc)*.1)
-# 
-# 
-#             
-# 
+```
+
+
+
+```{r}
+
+# the mpi_score of the intensity_tbl_st is the intensity of poverty
+
+#state_mpi_table <- intensity_tbl_st %>%
+  
+
+
+
+
+
+
 # state_names <- read_csv("C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv")
 # 
 # state_mpi_names <- left_join(state_mpi, state_names, by = "STATEFIP")
@@ -86,7 +94,7 @@ intensity_mpi <- intensity_tbl_st %>%
 #          per_contrib_housing = per_contrib_overcrowd + per_contrib_hcost_dep,
 #          per_contrib_social = per_contrib_computer_internet + per_contrib_lang_dep)
 # 
-# write_csv(state_mpi_names, "State MPI.csv")  
+# write_csv(state_mpi_names, "State_MPI.csv")  
 
 
 #make one that aggregates within the dimensions. 
@@ -101,7 +109,7 @@ The Census Bureau Estimates can be found here: https://www.census.gov/programs-s
 
 Here I code for an interactive map to display the data. I use only the 2015 data and display the headcount, adjusted headcount, and percent contribution to the overall index of each indicator.
 
-```{r mapping}
+```{r mapping, eval = FALSE}
 library(leaflet)
 library(rgdal)
 library(dplyr)
@@ -136,7 +144,7 @@ labels <- sprintf(
 map_states@data$adj_hc_per <- map_states@data$adj_hc*100
 
 pal <- colorNumeric(
-  palette = "YlOrRd",
+  palette = "BuPu",
   domain = map_states@data$adj_hc_per
 )
 
