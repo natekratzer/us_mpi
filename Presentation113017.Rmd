@@ -141,6 +141,8 @@ I am mainly focused on 1, 3, and 5 in this presentation
 - Primary Goods for Rawlsians
 - Capabilities for the MPI
 
+- Resistance to being explicitly normative often leads to being implicitly normative
+
 ---
 
 # The Capabilities Approach to Measurement
@@ -164,6 +166,7 @@ I am mainly focused on 1, 3, and 5 in this presentation
 - Trends of non-income and income poverty are not matched
 - Economic growth does not guarantee poverty reduction
 - Dashboards overlook interconnections of deprivations among individuals
+
 ---
 
 # MPIs in the U.S.
@@ -215,7 +218,8 @@ I am mainly focused on 1, 3, and 5 in this presentation
 - Index requires data at individual level to measure joint distribution of deprivations
   + This is the one of the reasons for an index instead of a dashboard. 
   
---- 
+ 
+---
 
 # Defining the indicators for children
 
@@ -302,9 +306,11 @@ formattable(per_contrib_df, list(`Percent Contribution to Index` = color_bar('li
 ```
 
 ---
+
+# Dashboard of Male and Female Indicators
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
 gender_df <- read_csv("output_data/gender_df.csv") %>% round(2)
-row.names(gender_df) <- c("MPI", "Income Poverty", "Employment", "Health", "Disability", "Education", "Overcrowd", "Housing Costs", "Internet", "Linguistic Isolation")
+row.names(gender_df) <- c("MPI Headcount", "Income Poverty", "Employment", "Health", "Disability", "Education", "Overcrowd", "Housing Costs", "Internet", "Linguistic Isolation")
 formattable(gender_df, list(`Female Mean` = color_bar('lightblue', na.rm = TRUE),
                                   `Male Mean` = color_bar('lightblue', na.rm = TRUE)))
 
@@ -412,5 +418,8 @@ leaflet(map_states) %>%
 ```
 
 
+---
+class: inverse, middle, center
 
+# Questions, Critiques, Comments, Slurs, Slanders
 
