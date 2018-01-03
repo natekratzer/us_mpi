@@ -41,13 +41,12 @@ library(stargazer)
 library(tidyverse)
 library(feather)
 
-#data = read_csv("C:/Users/natek/Documents/usa_00007.csv")
-#write_feather(data, "C:/Users/natek/Documents/MPI feather.feather")
+# data = read_csv("C:/Users/natek/Documents/usa_00014.csv")
+#  write_feather(data, "C:/Users/natek/Documents/mpi_feather.feather")
 
-data = read_feather("C:/Users/natek/Documents/MPI feather.feather")
+data <- read_feather("C:/Users/natek/Documents/mpi_feather.feather")
 
-str(data)
-
+glimpse(data)
 ```
 
 ## Economic
@@ -84,7 +83,6 @@ data = data %>%
 Health insurance is assigned at the individual level. Some members of the household may have health insurance, while others do not. 
 ```{r health, message = FALSE}
 data$health = if_else(data$HCOVANY == 2, 0, 1)
-
 ```
 
 #### Disability
@@ -144,7 +142,6 @@ data = data %>%
   group_by(SERIAL, YEAR) %>%
   mutate(hhsize = n())
            
-
 data$overcrowd = if_else(data$hhsize > 2*data$BEDROOMS, 1, 0)
 
 ```
@@ -173,9 +170,8 @@ Internet access is assigned at the household level. A household is considered de
 
 ```{r internet}
 data$computer_internet <- if_else(data$CINETHH == 3|(data$CILAPTOP == 2 & data$CIHAND == 2 & data$CIOTHCOMP == 2), 1, 0)
-
+data$computer_internet[is.na(data$computer_internet)] <- 0 #For missing data, I assume not deprived throughout.  
 ```
-
 
 ####Linguistic isolation
 Linguistic isolation is calculated as not having anyone in the household over the age of 14 who speaks English. It is calculated by the census bureau. 
@@ -199,42 +195,40 @@ rm(data) # removing to save memory
 
 ##Classifying Individuals as MPI poor
 
-Each of the five dimensions is equally weighted (.2). For the dimensions with two indicators they are equally weighted (.1) while the Education indicator has the full weight of the education dimension (.2). 
-
-I define MPI poor as being poor in 3 or more weighted indicators, with Education being weighted at .2 because it is the only indicator in its dimension. Thus, a weighted score of over .29 is MPI poor. 
+Each of the three dimensions is equally weighted, with each of the three indicators in each dimension also receiving equal weight.  
 
 ```{r mpi poor}
 mpi_data$mpi_score = mpi_data$income_poverty*(1/9) + 
   mpi_data$fam_emp *(1/9) + 
-  mpi_data$health*(1/6) + 
-  mpi_data$education*(1/6) +
-  mpi_data$overcrowd*(1/12) +
-  mpi_data$computer_internet*(1/12) + 
-  mpi_data$disability*(1/12) +
-  mpi_data$lang_dep * (1/12) +
+  mpi_data$health*(1/9) + 
+  mpi_data$education*(1/9) +
+  mpi_data$overcrowd*(1/9) +
+  mpi_data$computer_internet*(1/9) + 
+  mpi_data$disability*(1/9) +
+  mpi_data$lang_dep * (1/9) +
   mpi_data$hcost_dep * (1/9)
 
-mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .32, 1, 0)
+mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .21, 1, 0)
 
 mpi_data$mpi_score_no_inc =  
   mpi_data$fam_emp *(1/6) + 
-  mpi_data$health*(1/6) + 
-  mpi_data$education*(1/6) +
-  mpi_data$overcrowd*(1/12) +
-  mpi_data$computer_internet*(1/12) + 
-  mpi_data$disability*(1/12) +
-  mpi_data$lang_dep * (1/12) +
+  mpi_data$health*(1/9) + 
+  mpi_data$education*(1/9) +
+  mpi_data$overcrowd*(1/9) +
+  mpi_data$computer_internet*(1/9) + 
+  mpi_data$disability*(1/9) +
+  mpi_data$lang_dep * (1/9) +
   mpi_data$hcost_dep * (1/6)
 
-mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .32, 1, 0)
+mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .21, 1, 0)
 
-mpi_data_15 <- mpi_data %>% filter(YEAR == 2015)
+mpi_data_16 <- mpi_data %>% filter(YEAR == 2016)
 ```
 
 Writing out the data.
 ```{r}
 write_feather(mpi_data, "C:/Users/natek/Documents/mpi_data.feather")
-write_feather(mpi_data_15, "C:/Users/natek/Documents/mpi_data_15.feather")
+write_feather(mpi_data_16, "C:/Users/natek/Documents/mpi_data_16.feather")
 rm(mpi_data)
 
 ```
@@ -243,11 +237,11 @@ rm(mpi_data)
 
 Here I calculate an AF index for the U.S. in 2015. 
 ```{r}
-censored_mpi_data_15 <- mpi_data_15
-censored_mpi_data_15[censored_mpi_data_15$mpi_poor == 0, 7:15] <- 0
+censored_mpi_data_16 <- mpi_data_16
+censored_mpi_data_16[censored_mpi_data_16$mpi_poor == 0, 7:15] <- 0
 
-svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data_15)
-cen_svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = censored_mpi_data_15)
+svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data_16)
+cen_svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = censored_mpi_data_16)
 
 cen_hc_tbl <- svymean(~income_poverty+fam_emp+health+disability+education+overcrowd+hcost_dep+
                            computer_internet+lang_dep+mpi_poor, design = cen_svy_df)
@@ -274,7 +268,7 @@ mpi_overview<- rbind(as.numeric(headcount), as.numeric(intensity), as.numeric(ad
 row.names(mpi_overview) <- c("headcount", "intensity", "adj_hc")
 colnames(mpi_overview) <- c("Value", "Standard Error")
 
-weights <- c((1/9),(1/9),(1/6),(1/12),(1/6),(1/12),(1/9),(1/12),(1/12))
+weights <- c((1/9),(1/9),(1/9),(1/9),(1/9),(1/9),(1/9),(1/9),(1/9))
 per_contrib_vector <- (cen_hc_table[1:9,1]/adjusted_hc)*weights
 per_contrib_df <- data.frame(per_contrib_vector)
 #names(per_contrib_df) <- row.names(incidence_table)[1:9]
@@ -381,7 +375,7 @@ Breakdown by Metro status
 
 
 
-# metro_mpi <- mpi_data_15 %>%
+# metro_mpi <- mpi_data_16 %>%
 #   group_by(METRO) %>%
 #   summarise(headcount = sum(mpi_poor*PERWT)/sum(PERWT),
 #             income_censored_hc = sum(income_poverty[mpi_poor == 1]*PERWT[mpi_poor == 1], na.rm =TRUE),
@@ -482,7 +476,7 @@ per_contrib_gender <- per_contrib_gender*100
 ```{r csv2}
 write_csv(gender_df, "output_data/gender_df.csv")
 write_csv(per_contrib_gender, "output_data/per_contrib_gender.csv")
-write_csv(mpi_data_15[1:10, 7:17],"output_data/few_rows_mpi.csv")
+write_csv(mpi_data_16[1:10, 7:17],"output_data/few_rows_mpi.csv")
 ```
 
 

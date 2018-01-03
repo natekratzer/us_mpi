@@ -410,7 +410,7 @@ leaflet(map_states) %>%
               labelOptions = labelOptions(
                 style = list("font-weight" = "normal", padding = "3px 8px"),
                 textsize = "15px",
-                direction = "auto"))%>%
+                direction = "left"))%>%
   addLegend(pal = pal, values = ~adj_hc_per, opacity = 0.7, title = "Adj. Headcount",
           position = "bottomright") %>%
   setView(lng = -95, lat = 38.2527, zoom = 3)
