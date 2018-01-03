@@ -208,7 +208,7 @@ mpi_data$mpi_score = mpi_data$income_poverty*(1/9) +
   mpi_data$lang_dep * (1/9) +
   mpi_data$hcost_dep * (1/9)
 
-mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .21, 1, 0)
+mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .32, 1, 0)
 
 mpi_data$mpi_score_no_inc =  
   mpi_data$fam_emp *(1/6) + 
@@ -220,7 +220,7 @@ mpi_data$mpi_score_no_inc =
   mpi_data$lang_dep * (1/9) +
   mpi_data$hcost_dep * (1/6)
 
-mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .21, 1, 0)
+mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .32, 1, 0)
 
 mpi_data_16 <- mpi_data %>% filter(YEAR == 2016)
 ```
@@ -293,13 +293,13 @@ write_csv(inc_mpi_crosstab, "output_data/inc_mpi_crosstab.csv")
 write_csv(no_inc_mpi_crosstab, "output_data/no_inc_mpi_crosstab.csv")
 ```
 
-```{r stargazer, eval = FALSE}
-stargazer(mpi_overview, title = "MPI Overview", digits = 2, align = TRUE)
+```{r stargazer, eval = TRUE}
+stargazer(mpi_overview, title = "MPI Overview", digits = 2, align = TRUE, summary = FALSE)
 stargazer(incidence_table, summary = FALSE, title = "Incidence", digits = 2, align = TRUE)
 stargazer(per_contrib_df, summary = FALSE, title = "Percent Contribution to Adjusted Headcount", 
           digits = 2, align = TRUE)
-stargazer(inc_mpi_crosstab, title = "Income Poor v. MPI Poor", digits = 2, align = TRUE)
-stargazer(no_inc_mpi_crosstab, title = "Income Poor v. MPI Poor (Income not included in MPI)", digits = 2, align = TRUE)
+stargazer(inc_mpi_crosstab, title = "Income Poor v. MPI Poor", digits = 2, align = TRUE, summary = FALSE)
+stargazer(no_inc_mpi_crosstab, title = "Income Poor v. MPI Poor (Income not included in MPI)", digits = 2, align = TRUE, summary = FALSE)
 
 ```
 
@@ -480,7 +480,7 @@ write_csv(mpi_data_16[1:10, 7:17],"output_data/few_rows_mpi.csv")
 ```
 
 
-```{r stargazer 2, eval = FALSE}
+```{r stargazer 2, eval = TRUE}
 stargazer(gender_df, summary = FALSE, title = "Indicator Incidence by Gender", digits = 2, align = TRUE)
 stargazer(per_contrib_gender, summary = FALSE, title = "Percent Contribution to Index by Gender", digits = 2, align = TRUE)
 ```
