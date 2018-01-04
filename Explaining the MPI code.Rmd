@@ -49,6 +49,15 @@ data <- read_feather("C:/Users/natek/Documents/mpi_feather.feather")
 glimpse(data)
 ```
 
+
+Excluding group quarters
+
+```{r}
+data <- data %>% filter(GQ == 1 | GQ == 2 | GQ == 3)
+```
+
+
+
 ## Economic
 
 #### Income Poverty
@@ -57,6 +66,7 @@ The income poverty indicator is straightforward and is the same for all members 
 
 ```{r income}
 data$income_poverty = if_else(data$POVERTY < 100, 1, 0)
+data$income_poverty[data$POVERTY == 000] <- 0
 ```
 
 #### Family Employment
