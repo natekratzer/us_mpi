@@ -50,9 +50,8 @@ glimpse(data)
 ```
 
 
-Excluding group quarters
-
-```{r}
+If eval is set to TRUE This will exclude group quarters
+```{r, eval = FALSE}
 data <- data %>% filter(GQ == 1 | GQ == 2 | GQ == 3)
 ```
 
@@ -66,7 +65,7 @@ The income poverty indicator is straightforward and is the same for all members 
 
 ```{r income}
 data$income_poverty = if_else(data$POVERTY < 100, 1, 0)
-data$income_poverty[data$POVERTY == 000] <- 0
+data$income_poverty[data$POVERTY == 000] <- 0 # 000 is the NA code
 ```
 
 #### Family Employment
