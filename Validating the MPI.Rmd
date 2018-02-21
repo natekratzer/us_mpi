@@ -59,8 +59,12 @@ library(feather)
 library(tidyverse)
 library(gtools)
 library(stargazer)
+library(FactoMineR)
 
-mpi_data_15 = read_feather("C:/Users/natek/Documents/mpi_data_15.feather")
+#mpi_data_16 = read_feather("C:/Users/natek/Documents/mpi_data_16.feather")
+mpi_data = read_feather("C:/Users/natek/Documents/mpi_data.feather")
+mpi_data_16 <- mpi_data %>%
+  filter(YEAR == 2016)
 
 
 ```
@@ -73,10 +77,10 @@ combos <- c("income_poverty", "fam_emp", "health", "education", "overcrowd", "co
 c_matrix <- combinations(n=length(combos), r=2, v=combos) %>% as_data_frame()
 
 cramers_v <- function(x_name, y_name){
-  x <- mpi_data_15[[x_name]]
-  y <- mpi_data_15[[y_name]]
+  x <- mpi_data_16[[x_name]]
+  y <- mpi_data_16[[y_name]]
   t1 <- table(x,y)
-  n <- nrow(mpi_data_15)
+  n <- nrow(mpi_data_16)
   numerator <- ((t1[1,1]/n)*(t1[2,2]/n)) - ((t1[1,2]/n)*(t1[2,1]/n))
   denominator <- sqrt(mean(x)*mean(y)*(1-mean(x)*(1-mean(y))))
   cv <- numerator/denominator
@@ -84,21 +88,21 @@ cramers_v <- function(x_name, y_name){
 }
 
 calc_redundancy <- function(x_name, y_name){
-  x <- mpi_data_15[[x_name]]
-  y <- mpi_data_15[[y_name]]
+  x <- mpi_data_16[[x_name]]
+  y <- mpi_data_16[[y_name]]
   t1 = table(x,y)
-  redundancy = (t1[2,2]/nrow(mpi_data_15))/
+  redundancy = (t1[2,2]/nrow(mpi_data_16))/
     (min(mean(x, na.rm = T),
          mean(y, na.rm = T),
-         mean(x[mpi_data_15$mpi_poor == 1], na.rm =T),
-         mean(y[mpi_data_15$mpi_poor == 1], na.rm =T)
+         mean(x[mpi_data_16$mpi_poor == 1], na.rm =T),
+         mean(y[mpi_data_16$mpi_poor == 1], na.rm =T)
     ))
   redundancy
 }
 
 chi_sq_p <- function(x_name,y_name){
-  x <- mpi_data_15[[x_name]]
-  y <- mpi_data_15[[y_name]]
+  x <- mpi_data_16[[x_name]]
+  y <- mpi_data_16[[y_name]]
   temp <- chisq.test(x, y)
   temp$p.value
 }
@@ -193,16 +197,16 @@ stargazer(p_table, title = "p-values from Chi Sq test")
 
 ```
 
-MCA on Kentucky Data
+MCA on 2016 Data
 
-```{r}
-mpi_data_15 <- mpi_data_15 %>% ungroup()
+```{r, eval = FALSE}
+mpi_data_16 <- mpi_data_16 %>% ungroup()
 
-mpi_mca <- mpi_data_15 %>%
+mpi_mca <- mpi_data_16 %>%
   select(PERWT, income_poverty, fam_emp, health, education, overcrowd, computer_internet, lang_dep, hcost_dep, disability)
 ```
 
-```{r}
+```{r, eval = FALSE}
 shape_MCA <- function(x){
   recode(x, `1` = "yes", `0` = "no")
   as.factor(x)
@@ -212,20 +216,20 @@ mpi_mca[,2:10] <- lapply(mpi_mca[,2:10], shape_MCA)
 
 ```
 
-```{r}
-res <- MCA(mpi_mca[,-1], row.w = mpi_mca$PERWT)
+```{r, eval = FALSE}
+res <- MCA(mpi_mca[,-1], row.w = mpi_mca$PERWT, ncp = 5)
 ```
 
-```{r}
+```{r, eval = FALSE}
 summary(res, ncp = 5)
 ```
 
 
 Bootstrapping the MPI
 ```{r}
-# df_boot <- mpi_data_15 %>% select(mpi_poor, PERWT)
+# df_boot <- mpi_data_16 %>% select(mpi_poor, PERWT)
 # 
-# df_length <- nrow(mpi_data_15)
+# df_length <- nrow(mpi_data_16)
 # 
 # nboot <- 1000
 # boot_mean <- vector(length = nboot)

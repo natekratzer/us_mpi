@@ -1,0 +1,185 @@
+---
+title: "MPI sensitivity analysis"
+output: html_notebook
+---
+
+Sensitivity Analysis 
+
+```{r}
+library(tidyverse)
+library(feather)
+library(survey)
+library(ggthemes)
+```
+
+
+
+Reading in the data
+```{r}
+mpi_data <- read_feather("C:/Users/natek/Documents/mpi_data.feather")
+```
+
+
+
+```{r}
+mpi_data$mpi_score_no_inc = (
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_fam_emp = (
+  mpi_data$income_poverty + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_health = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_education = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_overcrowd = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_computer_internet = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$disability +
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_disability = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$lang_dep +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_lang_dep = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$hcost_dep) / 8
+
+mpi_data$mpi_score_no_hcost_dep = (
+  mpi_data$income_poverty + 
+  mpi_data$fam_emp  + 
+  mpi_data$health + 
+  mpi_data$education +
+  mpi_data$overcrowd +
+  mpi_data$computer_internet + 
+  mpi_data$disability +
+  mpi_data$lang_dep) / 8
+
+mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .32, 1, 0)
+mpi_data$mpi_poor_no_fam_emp = if_else(mpi_data$mpi_score_no_fam_emp > .32, 1, 0)
+mpi_data$mpi_poor_no_health = if_else(mpi_data$mpi_score_no_health > .32, 1, 0)
+mpi_data$mpi_poor_no_education = if_else(mpi_data$mpi_score_no_education > .32, 1, 0)
+mpi_data$mpi_poor_no_overcrowd = if_else(mpi_data$mpi_score_no_overcrowd > .32, 1, 0)
+mpi_data$mpi_poor_no_computer_internet = if_else(mpi_data$mpi_score_no_computer_internet > .32, 1, 0)
+mpi_data$mpi_poor_no_disability = if_else(mpi_data$mpi_score_no_disability > .32, 1, 0)
+mpi_data$mpi_poor_no_lang_dep = if_else(mpi_data$mpi_score_no_lang_dep > .32, 1, 0)
+mpi_data$mpi_poor_no_hcost_dep = if_else(mpi_data$mpi_score_no_hcost_dep > .32, 1, 0)
+
+mpi_data$mpi_poor = if_else(mpi_data$mpi_score > .32, 1, 0)
+mpi_data$mpi_poor_1 = if_else(mpi_data$mpi_score > .10, 1, 0)
+mpi_data$mpi_poor_2 = if_else(mpi_data$mpi_score > .21, 1, 0)
+mpi_data$mpi_poor_4 = if_else(mpi_data$mpi_score > .43, 1, 0)
+mpi_data$mpi_poor_5 = if_else(mpi_data$mpi_score > .54, 1, 0)
+```
+
+```{r}
+svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data)
+rm(mpi_data)
+```
+
+Note: running more than two at a time crashes my laptop. 
+```{r}
+sensitivity_svy_obj <- svyby(~mpi_poor + mpi_poor_1, 
+                             ~YEAR, svy_df, svymean)
+```
+
+
+```{r}
+sensitivity_svy_obj_2 <- svyby(~mpi_poor_2 + mpi_poor_4,
+                             ~YEAR, svy_df, svymean)
+sensitivity_svy_obj_3 <- svyby(~mpi_poor_5,
+                             ~YEAR, svy_df, svymean)
+```
+
+```{r}
+leave_one_out <- svyby(~mpi_poor_no_inc + mpi_poor_no_fam_emp, ~YEAR, svy_df, svymean)
+leave_one_out_2 <- svyby(~mpi_poor_no_health + mpi_poor_no_education, ~YEAR, svy_df, svymean)
+leave_one_out_3 <- svyby(~mpi_poor_no_overcrowd + mpi_poor_no_computer_internet, ~YEAR, svy_df, svymean)
+leave_one_out_4 <- svyby(~mpi_poor_no_disability + mpi_poor_no_lang_dep, ~YEAR, svy_df, svymean)
+leave_one_out_5 <- svyby(~mpi_poor_no_hcost_dep, ~YEAR, svy_df, svymean)
+```
+
+```{r}
+dat <- bind_cols(sensitivity_svy_obj, sensitivity_svy_obj_2, sensitivity_svy_obj_3,
+                 leave_one_out, leave_one_out_2, leave_one_out_3, leave_one_out_4, leave_one_out_5)
+```
+
+
+```{r}
+write_csv(dat, "sensitivity.csv")
+```
+
+
+```{r}
+threshold_df <- dat %>%
+  select(YEAR, mpi_poor_1, mpi_poor_2, mpi_poor, mpi_poor_4, mpi_poor_5) %>%
+  gather(`mpi_poor_1`, `mpi_poor_2`, `mpi_poor`, `mpi_poor_4`, `mpi_poor_5`, key = "threshold", value = "pov_rate") %>%
+  mutate(pov_rate = pov_rate * 100)
+```
+
+```{r}
+p <- ggplot(aes(x = YEAR, y = pov_rate, group = threshold, color = threshold), data = threshold_df)
+p <- p + geom_line() + theme_tufte() + labs(x = "Year", y = "Poverty Headcount", title = "Fig 4.1 Poverty at Different Indicator Cutoffs")
+p <- p + scale_colour_discrete(name  = "Indicators",
+                            breaks=c("mpi_poor_1", "mpi_poor_2", "mpi_poor", "mpi_poor_4", "mpi_poor_5"),
+                            labels=c("One", "Two", "Three", "Four", "Five"))
+p
+
+```

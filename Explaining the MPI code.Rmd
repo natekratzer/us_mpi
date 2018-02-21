@@ -234,6 +234,34 @@ mpi_data$mpi_poor_no_inc = if_else(mpi_data$mpi_score_no_inc > .32, 1, 0)
 mpi_data_16 <- mpi_data %>% filter(YEAR == 2016)
 ```
 
+
+## Parallel Processing
+
+```{r}
+make_mpi <- function(data){
+  
+}
+
+
+data_list <- split(data, STATEFIP)
+
+
+num_cores <- detectCores() - 1
+cl <- makeCluster(num_cores)
+clusterExport(cl, "data")
+clusterExportQ(cl, library(tidyverse))
+
+parLapply(cl, data, make_mpi)
+
+stopCluster(cl)
+```
+
+
+
+
+
+
+
 Writing out the data.
 ```{r}
 write_feather(mpi_data, "C:/Users/natek/Documents/mpi_data.feather")
@@ -316,7 +344,7 @@ stargazer(no_inc_mpi_crosstab, title = "Income Poor v. MPI Poor (Income not incl
 ```{r, eval = FALSE, include = FALSE}
 library(VennDiagram)
 grid.newpage()
-draw.pairwise.venn(16.7, 15.5, 8.4, category = c("Income Poor", "MPI Poor"), lty = rep("blank", 
+draw.pairwise.venn((9.97+5.97), (9.97+4.84), 9.97, category = c("Income Poor", "MPI Poor"), lty = rep("blank", 
     2), fill = c("red", "blue"), alpha = rep(0.5, 2), cat.pos = c(0, 
     0), cat.dist = rep(0.025, 2))
 ```
