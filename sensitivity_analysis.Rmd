@@ -1,6 +1,8 @@
 ---
 title: "MPI sensitivity analysis"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 Sensitivity Analysis 
@@ -19,6 +21,64 @@ Reading in the data
 mpi_data <- read_feather("C:/Users/natek/Documents/mpi_data.feather")
 ```
 
+Generating crosstabs
+```{r}
+mpi_16 <- mpi_data %>% filter(YEAR == 2016)
+svy_16 <- svydesign(ids = ~1, weights = ~PERWT, data = mpi_data)
+```
+
+```{r}
+svytable(~income_poverty+fam_emp, svy_16, Ntotal = 100)
+svytable(~income_poverty+health, svy_16, Ntotal = 100)
+svytable(~income_poverty+education, svy_16, Ntotal = 100)
+svytable(~income_poverty+overcrowd, svy_16, Ntotal = 100)
+svytable(~income_poverty+computer_internet, svy_16, Ntotal = 100)
+svytable(~income_poverty+disability, svy_16, Ntotal = 100)
+svytable(~income_poverty+lang_dep, svy_16, Ntotal = 100)
+svytable(~income_poverty+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~fam_emp+health, svy_16, Ntotal = 100)
+svytable(~fam_emp+education, svy_16, Ntotal = 100)
+svytable(~fam_emp+overcrowd, svy_16, Ntotal = 100)
+svytable(~fam_emp+computer_internet, svy_16, Ntotal = 100)
+svytable(~fam_emp+disability, svy_16, Ntotal = 100)
+svytable(~fam_emp+lang_dep, svy_16, Ntotal = 100)
+svytable(~fam_emp+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~health+education, svy_16, Ntotal = 100)
+svytable(~health+overcrowd, svy_16, Ntotal = 100)
+svytable(~health+computer_internet, svy_16, Ntotal = 100)
+svytable(~health+disability, svy_16, Ntotal = 100)
+svytable(~health+lang_dep, svy_16, Ntotal = 100)
+svytable(~health+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~education+overcrowd, svy_16, Ntotal = 100)
+svytable(~education+computer_internet, svy_16, Ntotal = 100)
+svytable(~education+disability, svy_16, Ntotal = 100)
+svytable(~education+lang_dep, svy_16, Ntotal = 100)
+svytable(~education+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~overcrowd+computer_internet, svy_16, Ntotal = 100)
+svytable(~overcrowd+disability, svy_16, Ntotal = 100)
+svytable(~overcrowd+lang_dep, svy_16, Ntotal = 100)
+svytable(~overcrowd+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~computer_internet+disability, svy_16, Ntotal = 100)
+svytable(~computer_internet+lang_dep, svy_16, Ntotal = 100)
+svytable(~computer_internet+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~disability+lang_dep, svy_16, Ntotal = 100)
+svytable(~disability+hcost_dep, svy_16, Ntotal = 100)
+
+svytable(~lang_dep+hcost_dep, svy_16, Ntotal = 100)
+
+```
+
+
+```{r}
+rm(mpi_16)
+rm(svy_16)
+```
 
 
 ```{r}
@@ -183,3 +243,7 @@ p <- p + scale_colour_discrete(name  = "Indicators",
 p
 
 ```
+
+
+
+

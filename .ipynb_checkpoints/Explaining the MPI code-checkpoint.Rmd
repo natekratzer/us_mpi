@@ -136,7 +136,7 @@ data = data %>%
   mutate(fam_edu = if_else(any(EDUCD > 80), 0, 1))
 
 data$education[data$AGE < 19] <- 0
-data$education[data$AGE < 19 & (data$fam_edu == 1)] <- 1
+data$education[data$AGE < 19 & (data$ fam_edu == 1)] <- 1
 
 ```
 
@@ -195,9 +195,7 @@ data$lang_dep <- if_else(data$LINGISOL == 2, 1, 0)
 Saving only the data that is used to construct the index, as well as a few groups it can be broken into (e.g. by state, gender, etc.)
 
 ```{r subset}
-exp_mpi_df = data %>%
-  select(YEAR, SERIAL, PERWT, SEX, METRO, STATEFIP, PUMA, AGE, RACE, FAMSIZE, HISPAN, income_poverty, fam_emp, health, education, overcrowd, computer_internet, lang_dep, hcost_dep, disability)
-mpi_data <- data %>% 
+mpi_data = data %>%
   select(YEAR, SERIAL, PERWT, SEX, METRO, STATEFIP, income_poverty, fam_emp, health, education, overcrowd, computer_internet, lang_dep, hcost_dep, disability)
 rm(data) # removing to save memory
 
@@ -239,7 +237,7 @@ mpi_data_16 <- mpi_data %>% filter(YEAR == 2016)
 
 ## Parallel Processing
 
-```{r, eval = FALSE   }
+```{r}
 make_mpi <- function(data){
   
 }
@@ -295,7 +293,7 @@ colnames(incidence_table) <- c("Uncensored Mean", "Uncensored SE", "Censored Mea
 
 
 
-intensity_tbl <- svyby(~mpi_score, ~I(mpi_poor == 1), design=svy_df, svymean)
+intensity_tbl <- svyby(~mpi_score, ~I(mpi_poor == 1),design=svy_df, svymean)
 intensity_table <-ftable(intensity_tbl)
 
 headcount <- incidence_table[10,1:2]
