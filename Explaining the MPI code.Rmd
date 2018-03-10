@@ -267,6 +267,7 @@ stopCluster(cl)
 Writing out the data.
 ```{r}
 write_feather(mpi_data, "C:/Users/natek/Documents/mpi_data.feather")
+write_feather(exp_mpi_df, "C:/Users/natek/Documents/mpi_exp_df.feather")
 write_feather(mpi_data_16, "C:/Users/natek/Documents/mpi_data_16.feather")
 rm(mpi_data)
 

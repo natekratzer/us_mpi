@@ -182,18 +182,30 @@ p <- ggplot(state_df, aes(year, adj_hc)) +
 ```
 
 
-#state bar chart
+# state bar chart
 ```{r}
 bplot_df <- state_df %>%
   filter(year == 2016) %>%
   select(st_abr, per_con_dim_edu, per_con_dim_hlth, per_con_dim_inc) %>%
-  gather(key = "dimension", value = "value", per_con_dim_edu, per_con_dim_hlth, per_con_dim_inc)
+  mutate(Health = per_con_dim_hlth * 100, Education = per_con_dim_edu*100, Economic = per_con_dim_inc * 100) %>%
+  gather(key = "Dimension", value = "value", Health, Education, Economic)
 
-p <- ggplot(bplot_df, aes(dimension, value, fill = dimension)) +
+p <- ggplot(bplot_df, aes(Dimension, value, fill = Dimension)) +
   geom_col() +
   coord_flip() + 
   facet_geo(~st_abr) +
-  labs(title = "Percent Contribution by Dimension", x = "Percent Contribution", y = "Dimension",
+  labs(title = "Percent Contribution by Dimension", x = "Dimension", y = "Percent Contribution",
        caption = "Source: Author's analysis of American Community Survey data via IPUMS")
+```
+
+
+
+# choroplethr map
+```{r}
+
+region <- tolower(state_df$State[state_df$year == 2016])
+value <- state_df$adj_hc[state_df$year == 2016]
+plt_map_df <- data.frame(region, value)
+plt_map <- state_choropleth(plt_map_df)
 ```
 
