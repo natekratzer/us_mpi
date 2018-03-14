@@ -1,0 +1,114 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(feather)
+library(survey)
+library(ggthemes)
+```
+
+```{r}
+df <- read_feather("C:/Users/natek/Documents/mpi_exp_df.feather")
+```
+
+```{r}
+df$mpi_score = df$income_poverty*(1/9) + 
+  df$fam_emp *(1/9) + 
+  df$health*(1/9) + 
+  df$education*(1/9) +
+  df$overcrowd*(1/9) +
+  df$computer_internet*(1/9) + 
+  df$disability*(1/9) +
+  df$lang_dep * (1/9) +
+  df$hcost_dep * (1/9)
+
+df$mpi_poor = if_else(df$mpi_score > .32, 1, 0)
+```
+
+```{r}
+svy_df <- svydesign(ids = ~1, weights = ~PERWT, data = df)
+ur_year_mean <- svyby(~mpi_poor + income_poverty+fam_emp+health+disability+education + overcrowd+hcost_dep+computer_internet+lang_dep, ~METRO + YEAR, design = svy_df, svymean)
+```
+
+# Intensity of deprivation among only the MPI poor
+```{r}
+svy_df_p <- subset(svy_df, mpi_poor == 1)
+rm(svy_df)
+ur_year_intensity <- svyby(~mpi_score, ~METRO + YEAR, design = svy_df_p, svymean)
+rm(svy_df_p)
+```
+
+```{r}
+ur_year_mean <- ur_year_mean %>% rename(headcount = mpi_poor, inc_inc = income_poverty, inc_emp = fam_emp, inc_health = health, inc_dis = disability, inc_edu = education, inc_crowd = overcrowd, inc_house = hcost_dep, inc_int = computer_internet, inc_lng = lang_dep, se_headcount = se.mpi_poor, se_inc_inc = se.income_poverty, se_inc_emp = se.fam_emp, se_inc_health = se.health, se_inc_dis = se.disability, se_inc_edu = se.education, se_inc_crowd = se.overcrowd, se_inc_house = se.hcost_dep, se_inc_int = se.computer_internet, se_inc_lng = se.lang_dep)
+ur_intensity <- ur_year_intensity %>% rename(intensity = mpi_score, int_se = se)
+ur_df <- full_join(ur_year_mean, ur_intensity, by = c("METRO", "YEAR"))
+ur_df$adj_hc <- ur_df$headcount * ur_df$intensity
+rm(ur_year_mean, ur_year_intensity)
+```
+
+Censored data
+```{r}
+cen_df <- df
+cen_df[cen_df$mpi_poor == 0, 12:20] <- 0
+cen_df <- svydesign(ids = ~1, weights = ~PERWT, data = cen_df)
+rm(df)
+```
+
+```{r}
+cen_hc <- svyby(~income_poverty+fam_emp+health+disability+education + overcrowd+hcost_dep+computer_internet+lang_dep, ~METRO + YEAR, design = cen_df, svymean)
+```
+
+```{r}
+cen_hc <- cen_hc %>%
+  rename(cen_inc = income_poverty, cen_emp = fam_emp, cen_health = health, cen_disability = disability, cen_edu = education, cen_crowd = overcrowd, cen_house = hcost_dep, cen_int = computer_internet, cen_lng = lang_dep, se_cen_inc = se.income_poverty, se_cen_emp = se.fam_emp, se_cen_health = se.health, se_cen_disability = se.disability, se_cen_edu = se.education, se_cen_crowd = se.overcrowd, se_cen_house = se.hcost_dep, se_cen_int = se.computer_internet, se_cen_lng = se.lang_dep)
+```
+
+
+```{r}
+ur_df <- full_join(ur_df, cen_hc, by = c("METRO", "YEAR"))
+ur_df <- ur_df %>%
+  mutate(per_con_inc = (cen_inc/adj_hc) * (1/9),
+         per_con_emp = (cen_emp/adj_hc) * (1/9),
+         per_con_hlth = (cen_health/adj_hc) * (1/9),
+         per_con_dis = (cen_disability/adj_hc) * (1/9),
+         per_con_edu = (cen_edu/adj_hc) * (1/9),
+         per_con_crowd = (cen_crowd/adj_hc) * (1/9),
+         per_con_hcost = (cen_house / adj_hc) * (1/9),
+         per_con_int = (cen_int / adj_hc) * (1/9),
+         per_con_lng = (cen_lng / adj_hc) * (1/9), 
+         per_con_dim_edu = per_con_edu + per_con_int + per_con_lng,
+         per_con_dim_inc = per_con_inc + per_con_emp + per_con_hcost,
+         per_con_dim_hlth = per_con_hlth + per_con_dis + per_con_crowd)
+```
+
+```{r}
+write_csv(ur_df, "urban_rural_data.csv")
+```
+
+```{r}
+ur_df <- read_csv("urban_rural_data.csv")
+```
+
+
+```{r}
+ur_df$METRO <- as.factor(ur_df$METRO)
+ur_df_per_con <- ur_df %>%
+  filter(METRO == 1 | METRO == 2) %>%
+  dplyr::select(METRO, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, Health = per_con_hlth, Disability = per_con_dis, Education = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
+  gather(key = "Indicator", value = "dec_percent", -YEAR, -METRO) %>%
+  mutate(Percent = dec_percent * 100)
+```
+
+```{r}
+p <- ggplot(ur_df_per_con, aes(x = YEAR, y = Percent, group = METRO, linetype = METRO)) + geom_line() + facet_wrap(~Indicator) + 
+  scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
+  labs(title = "Percent Contribution of Indicators by Urban/Rural Status", x = "Year", y = "Percent") + 
+  theme_bw() + 
+  scale_linetype_discrete(name = "", breaks = c("1", "2"), labels = c("Rural", "Urban"))
+```
+
+
+
