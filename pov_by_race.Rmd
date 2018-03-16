@@ -124,8 +124,18 @@ race_df <- read_csv("pov_race_data.csv")
 ```{r}
 race_df$race <- as.factor(race_df$race)
 race_df_per_con <- race_df %>%
-  filter(race == 1 | race == 2) %>%
+  filter(race == "White" | race == "Black" | race == "Hispanic" | race == "Asian") %>%
   dplyr::select(race, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, Health = per_con_hlth, Disability = per_con_dis, Education = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
   gather(key = "Indicator", value = "dec_percent", -YEAR, -race) %>%
   mutate(Percent = dec_percent * 100)
 ```
+
+
+```{r}
+p <- ggplot(race_df_per_con, aes(x = YEAR, y = Percent, group = race, color = race)) + geom_line() + geom_point() + facet_wrap(~Indicator) + 
+  scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
+  labs(title = "Percent Contribution of Indicators by Race/Ethnicity", x = "Year", y = "Percent") + 
+  theme_bw() + 
+  scale_color_discrete(name = "Race/Ethnicity")
+```
+
