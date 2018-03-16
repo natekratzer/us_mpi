@@ -113,7 +113,7 @@ age_df <- read_csv("pov_age_data.csv")
 ```{r}
 age_df$age <- as.factor(age_df$age)
 age_df_per_con <- age_df %>%
-  filter(age == "White" | age == "Black" | age == "Hispanic" | age == "Asian") %>%
+  filter(age == "Under 18" | age == "18 to 64" | age == "Over 65" ) %>%
   dplyr::select(age, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, Health = per_con_hlth, Disability = per_con_dis, Education = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
   gather(key = "Indicator", value = "dec_percent", -YEAR, -age) %>%
   mutate(Percent = dec_percent * 100)
