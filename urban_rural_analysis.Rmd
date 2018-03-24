@@ -97,17 +97,24 @@ ur_df <- read_csv("urban_rural_data.csv")
 ur_df$METRO <- as.factor(ur_df$METRO)
 ur_df_per_con <- ur_df %>%
   filter(METRO == 1 | METRO == 2) %>%
-  dplyr::select(METRO, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, Health = per_con_hlth, Disability = per_con_dis, Education = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
+  dplyr::select(METRO, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, 'Health Insurance' = per_con_hlth, Disability = per_con_dis, 'HS Degree' = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
   gather(key = "Indicator", value = "dec_percent", -YEAR, -METRO) %>%
   mutate(Percent = dec_percent * 100)
 ```
 
 ```{r}
-p <- ggplot(ur_df_per_con, aes(x = YEAR, y = Percent, group = METRO, linetype = METRO)) + geom_line() + facet_wrap(~Indicator) + 
+ur_df_per_con$Indicator <- factor(ur_df_per_con$Indicator, levels = c("Adj. Headcount", "Health Insurance", "HS Degree", "Income", "Headcount", "Disability", "Internet", "Employment", "Intensity", "Overcrowding", "Language", "Housing Cost"))
+```
+
+
+```{r}
+png("fig_5_11_per_con_ur.png", width = 600, height = 400)
+ggplot(ur_df_per_con, aes(x = YEAR, y = Percent, group = METRO, linetype = METRO)) + geom_line() + facet_wrap(~Indicator) + 
   scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
-  labs(title = "Percent Contribution of Indicators by Urban/Rural Status", x = "Year", y = "Percent") + 
+  labs(title = "Figure 5.11 Percent Contribution of Indicators by Urban/Rural Status", x = "Year", y = "Percent") + 
   theme_bw() + 
   scale_linetype_discrete(name = "", breaks = c("1", "2"), labels = c("Rural", "Urban"))
+dev.off()
 ```
 
 

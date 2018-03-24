@@ -33,7 +33,7 @@ state_md <- state_df %>%
             per_con_hlth = mean(per_con_hlth))
 
 state_md$Medicaid_Expansion <- as.factor(state_md$Medicaid_Expansion)
-png("fig_5_6_per_con_hlth_medicaid.png")
+png("fig_5_6_per_con_hlth_medicaid.png", width = 600, height = 400)
 ggplot(data = state_md, aes(YEAR, per_con_hlth * 100, group = Medicaid_Expansion, linetype = Medicaid_Expansion)) + geom_line() + labs(title = "Figure 5.6 Percent Contribution of Health Insurance over time", x = "Year", y = "Percent Contribution of Health Insurance") + theme_tufte() + scale_linetype_discrete(name = "Medicaid\nExpansion", breaks = c("1", "0"), labels = c("Yes", "No"))
 dev.off()
 ```
@@ -50,7 +50,7 @@ summary(ddreg2)
 
 
 ```{r}
-png("fig_5_3_state_mpi_time.png")
+png("fig_5_3_state_mpi_time.png", height = 400, width = 600)
 ggplot(state_df, aes(YEAR, adj_hc *100)) +
   geom_line() +
   scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
@@ -64,7 +64,7 @@ dev.off()
 
 # Percent contribution of health insurance
 ```{r}
-png("fig_5_5_per_con_hlth_medicaid_state.png")
+png("fig_5_5_per_con_hlth_medicaid_state.png", height = 400, width = 600)
 ggplot(state_df, aes(YEAR, per_con_hlth *100, linetype = as.factor(Medicaid_Expansion))) +
   geom_line() + guides(linetype = FALSE) +
   scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
@@ -85,7 +85,7 @@ bplot_df <- state_df %>%
   mutate(Health = per_con_dim_hlth * 100, Education = per_con_dim_edu*100, Economic = per_con_dim_inc * 100) %>%
   gather(key = "Dimension", value = "value", Health, Education, Economic)
 
-png("fig_5_4_per_con_state_bar_chart.png")
+png("fig_5_4_per_con_state_bar_chart.png", height = 400, width = 600)
 ggplot(bplot_df, aes(Dimension, value, fill = Dimension)) +
   guides(fill = FALSE) +
   geom_col() +
@@ -106,8 +106,8 @@ value <- state_df$adj_hc[state_df$YEAR == 2016]
 value <- round(value * 100, 1)
 plt_map_df <- data.frame(region, value)
 
-png("fig_5_1_state_choro.png")
-plt_map <- state_choropleth(plt_map_df) + labs(title = "Figure 5.1 Adjusted Headcount, 2016") + theme(plot.title = element_text(hjust = 0.5))
+png("fig_5_1_state_choro.png", width = 600, height = 350)
+state_choropleth(plt_map_df) + labs(title = "Figure 5.1 Adjusted Headcount, 2016") + theme(plot.title = element_text(hjust = 0.5))
 dev.off()
 ```
 
@@ -121,8 +121,7 @@ state_df_16 <- state_df_16 %>% arrange(adj_hc)
 #Plot of income poverty v. mpi poverty
 ```{r}
 png("fig_5_2_state_inc_mpi_scatter.png")
-p <- ggplot(state_df_16, aes(x = inc_inc*100, y = adj_hc * 100)) + geom_label(aes(label = st_abr))+ geom_smooth(method = "lm", se = FALSE)
-p <- p + labs(title = "Figure 5.2 Income Poverty and Adjusted Headcount, 2016 ", y = "Adjusted Headcount", x = "Income Poverty") + theme_tufte()
+ggplot(state_df_16, aes(x = inc_inc*100, y = adj_hc * 100)) + geom_label(aes(label = st_abr))+ geom_smooth(method = "lm", se = FALSE) + labs(title = "Figure 5.2 Income Poverty and Adjusted Headcount, 2016 ", y = "Adjusted Headcount", x = "Income Poverty") + theme_tufte()
 ```
 
 ## Kentucky analysis
@@ -228,15 +227,15 @@ ky_shp@data$per_con_int <- ky_shp@data$per_con_int * 100
 
 
 ```{r}
-png("fig_5_8_ky_map.png")
+png("fig_5_8_ky_map.png", height = 250, width = 550)
 tm_shape(ky_shp) +
   tm_polygons("adj_hc", style="quantile", title="Figure 5.8 Adjusted Headcount", palette = "Blues")
 dev.off()
-png("fig_5_10_ky_per_con_house.png")
+png("fig_5_10_ky_per_con_house.png", height = 250, width = 550)
 tm_shape(ky_shp) +
   tm_polygons("per_con_hcost", style="quantile", title="Figure 5.10 Housing Cost Percent Contribution", palette = "Blues")
 dev.off()
-png("fig_5_9_ky_per_con_int.png")
+png("fig_5_9_ky_per_con_int.png", height = 250, width = 550)
 tm_shape(ky_shp) +
   tm_polygons("per_con_int", style="quantile", title="Figure 5.9 Internet Access Percent Contribution", palette = "Blues")
 dev.off()
@@ -248,13 +247,14 @@ dev.off()
 ```{r}
 ky_per_con_df <- state_df %>% 
   filter(STATEFIP == 21) %>%
-  dplyr::select(YEAR, Income = per_con_inc, Employment = per_con_emp, 'Health Insurance' = per_con_hlth, Disability = per_con_dis, 'HS Degree' = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
+  dplyr::select(YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, 'Health Insurance' = per_con_hlth, Disability = per_con_dis, 'HS Degree' = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
   gather(key = "Indicator", value = "dec_percent", -YEAR) %>%
   mutate(Percent = dec_percent * 100)
+ky_per_con_df$Indicator <- factor(ky_per_con_df$Indicator, levels = c("Adj. Headcount", "Health Insurance", "HS Degree", "Income", "Headcount", "Disability", "Internet", "Employment", "Intensity", "Overcrowding", "Language", "Housing Cost"))
 ```
 
 ```{r}
-png("fig_5_7_per_con_ky_time.png")
+png("fig_5_7_per_con_ky_time.png", width = 600, height = 400)
 ggplot(ky_per_con_df, aes(x = YEAR, y = Percent)) + geom_line() + facet_wrap(~Indicator) + 
   labs(title = "Figure 5.7 Percent Contribution of Indicators in Kentucky", x = "Year", y = "Percent") + theme_bw()
 dev.off()

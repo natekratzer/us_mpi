@@ -106,24 +106,27 @@ write_csv(age_df, "pov_age_less_detail_data.csv")
 ```
 
 ```{r, eval = FALSE}
-age_df <- read_csv("pov_age_data.csv")
+age_df <- read_csv("pov_age_less_detail_data.csv")
 ```
 
 
 ```{r}
-age_df$age <- as.factor(age_df$age)
+age_df$age <- factor(age_df$age, levels = c("Under 18", "18 to 64", "Over 65"))
 age_df_per_con <- age_df %>%
   filter(age == "Under 18" | age == "18 to 64" | age == "Over 65" ) %>%
-  dplyr::select(age, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, Health = per_con_hlth, Disability = per_con_dis, Education = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
+  dplyr::select(age, YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, 'Health Insurance' = per_con_hlth, Disability = per_con_dis, 'HS Degree' = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %>%
   gather(key = "Indicator", value = "dec_percent", -YEAR, -age) %>%
   mutate(Percent = dec_percent * 100)
+age_df_per_con$Indicator <- factor(age_df_per_con$Indicator, levels = c("Adj. Headcount", "Health Insurance", "HS Degree", "Income", "Headcount", "Disability", "Internet", "Employment", "Intensity", "Overcrowding", "Language", "Housing Cost"))
 ```
 
 
 ```{r}
-p <- ggplot(age_df_per_con, aes(x = YEAR, y = Percent, group = age, color = age)) + geom_line() + geom_point() + facet_wrap(~Indicator) + 
+png("fig_5_14_pov_by_age.png", width = 600, height = 400)
+ggplot(age_df_per_con, aes(x = YEAR, y = Percent, group = age, color = age)) + geom_line() + geom_point() + facet_wrap(~Indicator) + 
   scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
-  labs(title = "Percent Contribution of Indicators by Age Group", x = "Year", y = "Percent") + 
+  labs(title = "Figure 5.14 Percent Contribution of Indicators by Age Group", x = "Year", y = "Percent") + 
   theme_bw() + 
   scale_color_discrete(name = "Age Group")
+dev.off()
 ```
