@@ -111,9 +111,9 @@ ur_df_per_con$Indicator <- factor(ur_df_per_con$Indicator, levels = c("Adj. Head
 png("fig_5_11_per_con_ur.png", width = 600, height = 400)
 ggplot(ur_df_per_con, aes(x = YEAR, y = Percent, group = METRO, color = METRO)) + geom_line() + geom_point() + facet_wrap(~Indicator) + 
   scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
-  labs(title = "Figure 5.11 Percent Contribution of Indicators by Urban/Rural Status", x = "Year", y = "Percent") + 
+  labs(title = "Figure 5.11 Percent Contribution of Indicators by Metro Status", x = "Year", y = "Percent") + 
   theme_bw() + 
-  scale_color_discrete(name = "", breaks = c("1", "2", "3"), labels = c("Rural", "Urban", "Suburban"))
+  scale_color_discrete(name = "", breaks = c("1", "2", "3"), labels = c("Out of Metro", "In Principal City", "In Metro Outside \n Principal City"))
 dev.off()
 ```
 

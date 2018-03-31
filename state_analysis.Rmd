@@ -71,7 +71,7 @@ ggplot(state_df, aes(YEAR, per_con_hlth *100, linetype = as.factor(Medicaid_Expa
   #scale_y_continuous(breaks = c(4, 7, 10)) +
   #theme(axis.text = element_blank(), axis.ticks = element_blank()) +
   facet_geo(~st_abr) +
-  labs(title = "Figure 5.5 Percent Contribution of Health Insurance to MPI in U.S. states from 2013 to 2016", x = "Year", y = "Adjusted Headcount",
+  labs(title = "Figure 5.5 Percent Contribution of Health Insurance to MPI in U.S. states from 2013 to 2016", x = "Year", y = "Percent",
        caption = "Dashed lines represent states that expanded Medicaid \nSource: Author's analysis of American Community Survey data via IPUMS")
 dev.off()
 ```
@@ -258,5 +258,17 @@ png("fig_5_7_per_con_ky_time.png", width = 600, height = 400)
 ggplot(ky_per_con_df, aes(x = YEAR, y = Percent)) + geom_line() + facet_wrap(~Indicator) + 
   labs(title = "Figure 5.7 Percent Contribution of Indicators in Kentucky", x = "Year", y = "Percent") + theme_bw()
 dev.off()
+```
+
+correlation coefficient between starting at high poverty levels and reducing poverty
+```{r}
+df_13 <- state_df %>% filter(YEAR == 2013) %>% arrange(STATEFIP)
+df_16 <- state_df %>% filter(YEAR == 2016) %>% arrange(STATEFIP)
+
+start_value <- df_13$adj_hc
+per_change <- (df_16$adj_hc - df_13$adj_hc)/ df_13$adj_hc
+
+cor.test(start_value, per_change)
+
 ```
 

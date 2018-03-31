@@ -1,0 +1,92 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(feather)
+library(tidyverse)
+library(sandwich)
+library(lmtest)
+library(broom)
+```
+
+
+```{r}
+df <- read_feather("C:/Users/natek/Documents/mpi_exp_df.feather")
+```
+
+```{r}
+df$mpi_score = df$income_poverty*(1/9) + 
+  df$fam_emp *(1/9) + 
+  df$health*(1/9) + 
+  df$education*(1/9) +
+  df$overcrowd*(1/9) +
+  df$computer_internet*(1/9) + 
+  df$disability*(1/9) +
+  df$lang_dep * (1/9) +
+  df$hcost_dep * (1/9)
+
+df$mpi_poor = if_else(df$mpi_score > .32, 1, 0)
+```
+
+```{r}
+df$race <- NA
+df$race[df$RACE == 1] <- "White"
+df$race[df$RACE == 2] <- "Black"
+df$race[df$RACE == 3] <- "Native"
+df$race[df$RACE == 4] <- "Asian"
+df$race[df$RACE == 5] <- "Asian"
+df$race[df$RACE == 6] <- "Asian"
+df$race[df$RACE == 7] <- "Other"
+df$race[df$RACE == 8] <- "Two races"
+df$race[df$RACE == 9] <- "Three or more races"
+df$race[df$HISPAN == 1] <- "Hispanic"
+df$race[df$HISPAN == 2] <- "Hispanic"
+df$race[df$HISPAN == 3] <- "Hispanic"
+df$race[df$HISPAN == 4] <- "Hispanic"
+```
+
+
+```{r}
+df$sex <- as.factor(df$SEX)
+df$metro <- as.factor(df$METRO)
+df$year <- as.factor(df$YEAR)
+df$age_sq <- df$AGE ^ 2
+df$state <- as.factor(df$STATEFIP)
+df$num_dep <- df$mpi_score * 9
+df$race <- as.factor(df$race)
+df$race <- relevel(df$race, "Other")
+set.seed(42)
+df_sample <- sample_frac(df, 0.10)
+mod1 <- lm(num_dep ~ sex+race+metro+AGE+age_sq+state+year, weights = PERWT, data = df_sample)
+mod1$newse <- vcovHC(mod1, type="HC3")
+mod1.display <- coeftest(mod1, mod1$newse)
+tidy_output <- broom::tidy(mod1.display)
+tidy_output[,2:5] <- round(tidy_output[,2:5], 3)
+tidy_output <- knitr::kable(tidy_output, "html")
+tidy_output
+```
+
+```{r}
+mod2 <- lm(mpi_poor ~ sex+race+metro+AGE+age_sq+state+year, weights = PERWT, data = df_sample)
+mod2$newse <- vcovHC(mod2, type="HC3")
+mod2.display <- coeftest(mod2, mod2$newse)
+tidy_output <- broom::tidy(mod2.display)
+tidy_output[,2:5] <- round(tidy_output[,2:5], 3)
+tidy_output <- knitr::kable(tidy_output, "html")
+tidy_output
+```
+
+```{r}
+mod3 <- lm(income_poverty ~ sex+race+metro+AGE+age_sq+state+year, weights = PERWT, data = df_sample)
+mod3$newse <- vcovHC(mod3, type="HC3")
+mod3.display <- coeftest(mod3, mod3$newse)
+tidy_output <- broom::tidy(mod3.display)
+tidy_output[,2:5] <- round(tidy_output[,2:5], 3)
+tidy_output <- knitr::kable(tidy_output, "html")
+tidy_output
+```
+
+
+

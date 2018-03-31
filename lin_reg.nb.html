@@ -142,7 +142,7 @@ $(document).ready(function () {
 </style>
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("state_analysis.Rmd");
+  window.initializeSourceEmbed("lin_reg.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>
@@ -174,535 +174,3692 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
-<pre class="r"><code>library(tidyverse)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShmZWF0aGVyKVxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
+<pre class="r"><code>library(feather)
+library(tidyverse)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyB0aWR5dmVyc2U6IGdncGxvdDJcbkxvYWRpbmcgdGlkeXZlcnNlOiB0aWJibGVcbkxvYWRpbmcgdGlkeXZlcnNlOiB0aWR5clxuTG9hZGluZyB0aWR5dmVyc2U6IHJlYWRyXG5Mb2FkaW5nIHRpZHl2ZXJzZTogcHVycnJcbkxvYWRpbmcgdGlkeXZlcnNlOiBkcGx5clxuQ29uZmxpY3RzIHdpdGggdGlkeSBwYWNrYWdlcyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1cbmZpbHRlcigpOiBkcGx5ciwgc3RhdHNcbmxhZygpOiAgICBkcGx5ciwgc3RhdHNcbiJ9 -->
+<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyB0aWR5dmVyc2U6IGdncGxvdDJcbkxvYWRpbmcgdGlkeXZlcnNlOiB0aWJibGVcbkxvYWRpbmcgdGlkeXZlcnNlOiB0aWR5clxuTG9hZGluZyB0aWR5dmVyc2U6IHJlYWRyXG5Mb2FkaW5nIHRpZHl2ZXJzZTogcHVycnJcbkxvYWRpbmcgdGlkeXZlcnNlOiBkcGx5clxuQ29uZmxpY3RzIHdpdGggdGlkeSBwYWNrYWdlcyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG5maWx0ZXIoKTogZHBseXIsIHN0YXRzXG5sYWcoKTogICAgZHBseXIsIHN0YXRzXG4ifQ== -->
 <pre><code>Loading tidyverse: ggplot2
 Loading tidyverse: tibble
 Loading tidyverse: tidyr
 Loading tidyverse: readr
 Loading tidyverse: purrr
 Loading tidyverse: dplyr
-Conflicts with tidy packages ------------------------------------------------------------------------------------
+Conflicts with tidy packages -------------------------------------------------
 filter(): dplyr, stats
 lag():    dplyr, stats</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZW9mYWNldClcbmBgYCJ9 -->
-<pre class="r"><code>library(geofacet)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShzYW5kd2ljaClcbmxpYnJhcnkobG10ZXN0KVxuYGBgIn0= -->
+<pre class="r"><code>library(sandwich)
+library(lmtest)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDjpLzjuLFnZW9mYWNldOOkvOO4siB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDMuNC4zXG4ifQ== -->
-<pre><code>package &lt;U+393C&gt;&lt;U+3E31&gt;geofacet&lt;U+393C&gt;&lt;U+3E32&gt; was built under R version 3.4.3</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3RoZW1lcylcbmxpYnJhcnkocmdkYWwpXG5gYGAifQ== -->
-<pre class="r"><code>library(ggthemes)
-library(rgdal)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBzcFxucmdkYWw6IHZlcnNpb246IDEuMi0xMywgKFNWTiByZXZpc2lvbiA2ODYpXG4gR2Vvc3BhdGlhbCBEYXRhIEFic3RyYWN0aW9uIExpYnJhcnkgZXh0ZW5zaW9ucyB0byBSIHN1Y2Nlc3NmdWxseSBsb2FkZWRcbiBMb2FkZWQgR0RBTCBydW50aW1lOiBHREFMIDIuMi4wLCByZWxlYXNlZCAyMDE3LzA0LzI4XG4gUGF0aCB0byBHREFMIHNoYXJlZCBmaWxlczogQzovVXNlcnMvbmF0ZWsvRG9jdW1lbnRzL1Ivd2luLWxpYnJhcnkvMy40L3JnZGFsL2dkYWxcbiBMb2FkZWQgUFJPSi40IHJ1bnRpbWU6IFJlbC4gNC45LjMsIDE1IEF1Z3VzdCAyMDE2LCBbUEpfVkVSU0lPTjogNDkzXVxuIFBhdGggdG8gUFJPSi40IHNoYXJlZCBmaWxlczogQzovVXNlcnMvbmF0ZWsvRG9jdW1lbnRzL1Ivd2luLWxpYnJhcnkvMy40L3JnZGFsL3Byb2pcbiBMaW5raW5nIHRvIHNwIHZlcnNpb246IDEuMi01IFxuIn0= -->
-<pre><code>Loading required package: sp
-rgdal: version: 1.2-13, (SVN revision 686)
- Geospatial Data Abstraction Library extensions to R successfully loaded
- Loaded GDAL runtime: GDAL 2.2.0, released 2017/04/28
- Path to GDAL shared files: C:/Users/natek/Documents/R/win-library/3.4/rgdal/gdal
- Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
- Path to PROJ.4 shared files: C:/Users/natek/Documents/R/win-library/3.4/rgdal/proj
- Linking to sp version: 1.2-5 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjaG9yb3BsZXRocilcbmBgYCJ9 -->
-<pre class="r"><code>library(choroplethr)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSCRY2hvcm9wbGV0aHKSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gMy40LjNMb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IGFjc1xucGFja2FnZSCRYWNzkiB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDMuNC4zTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBzdHJpbmdyXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IFhNTFxucGFja2FnZSCRWE1MkiB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDMuNC4zXG5BdHRhY2hpbmcgcGFja2FnZTogkWFjc5JcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20gkXBhY2thZ2U6ZHBseXKSOlxuXG4gICAgY29tYmluZVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSCRcGFja2FnZTpiYXNlkjpcblxuICAgIGFwcGx5XG5cblZpZXcgdGhlIENob3JvcGxldGhyIGRvY3VtZW50YXRpb24gaGVyZTogd3d3LkFyaUxhbXN0ZWluLmNvbS9vcGVuLXNvdXJjZVxuIn0= -->
-<pre><code>package &lt;U+393C&gt;&lt;U+3E31&gt;choroplethr&lt;U+393C&gt;&lt;U+3E32&gt; was built under R version 3.4.3Loading required package: acs
-package &lt;U+393C&gt;&lt;U+3E31&gt;acs&lt;U+393C&gt;&lt;U+3E32&gt; was built under R version 3.4.3Loading required package: stringr
-Loading required package: XML
-package &lt;U+393C&gt;&lt;U+3E31&gt;XML&lt;U+393C&gt;&lt;U+3E32&gt; was built under R version 3.4.3
-Attaching package: &lt;U+393C&gt;&lt;U+3E31&gt;acs&lt;U+393C&gt;&lt;U+3E32&gt;
+<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiB6b29cblxuQXR0YWNoaW5nIHBhY2thZ2U6IOOkvOO4sXpvb+OkvOO4slxuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOOkvOO4sXBhY2thZ2U6YmFzZeOkvOO4sjpcblxuICAgIGFzLkRhdGUsIGFzLkRhdGUubnVtZXJpY1xuIn0= -->
+<pre><code>Loading required package: zoo
 
-The following object is masked from &lt;U+393C&gt;&lt;U+3E31&gt;package:dplyr&lt;U+393C&gt;&lt;U+3E32&gt;:
+Attaching package: &lt;U+393C&gt;&lt;U+3E31&gt;zoo&lt;U+393C&gt;&lt;U+3E32&gt;
 
-    combine
+The following objects are masked from &lt;U+393C&gt;&lt;U+3E31&gt;package:base&lt;U+393C&gt;&lt;U+3E32&gt;:
 
-The following object is masked from &lt;U+393C&gt;&lt;U+3E31&gt;package:base&lt;U+393C&gt;&lt;U+3E32&gt;:
+    as.Date, as.Date.numeric</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShicm9vbSlcbmBgYCJ9 -->
+<pre class="r"><code>library(broom)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYgPC0gcmVhZF9mZWF0aGVyKFwiQzovVXNlcnMvbmF0ZWsvRG9jdW1lbnRzL21waV9leHBfZGYuZmVhdGhlclwiKVxuYGBgIn0= -->
+<pre class="r"><code>df &lt;- read_feather(&quot;C:/Users/natek/Documents/mpi_exp_df.feather&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYkbXBpX3Njb3JlID0gZGYkaW5jb21lX3BvdmVydHkqKDEvOSkgKyBcbiAgZGYkZmFtX2VtcCAqKDEvOSkgKyBcbiAgZGYkaGVhbHRoKigxLzkpICsgXG4gIGRmJGVkdWNhdGlvbiooMS85KSArXG4gIGRmJG92ZXJjcm93ZCooMS85KSArXG4gIGRmJGNvbXB1dGVyX2ludGVybmV0KigxLzkpICsgXG4gIGRmJGRpc2FiaWxpdHkqKDEvOSkgK1xuICBkZiRsYW5nX2RlcCAqICgxLzkpICtcbiAgZGYkaGNvc3RfZGVwICogKDEvOSlcbmRmJG1waV9wb29yID0gaWZfZWxzZShkZiRtcGlfc2NvcmUgPiAuMzIsIDEsIDApXG5gYGAifQ== -->
+<pre class="r"><code>df$mpi_score = df$income_poverty*(1/9) + 
+  df$fam_emp *(1/9) + 
+  df$health*(1/9) + 
+  df$education*(1/9) +
+  df$overcrowd*(1/9) +
+  df$computer_internet*(1/9) + 
+  df$disability*(1/9) +
+  df$lang_dep * (1/9) +
+  df$hcost_dep * (1/9)
+df$mpi_poor = if_else(df$mpi_score &gt; .32, 1, 0)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYkcmFjZSA8LSBOQVxuZGYkcmFjZVtkZiRSQUNFID09IDFdIDwtIFwiV2hpdGVcIlxuZGYkcmFjZVtkZiRSQUNFID09IDJdIDwtIFwiQmxhY2tcIlxuZGYkcmFjZVtkZiRSQUNFID09IDNdIDwtIFwiTmF0aXZlXCJcbmRmJHJhY2VbZGYkUkFDRSA9PSA0XSA8LSBcIkFzaWFuXCJcbmRmJHJhY2VbZGYkUkFDRSA9PSA1XSA8LSBcIkFzaWFuXCJcbmRmJHJhY2VbZGYkUkFDRSA9PSA2XSA8LSBcIkFzaWFuXCJcbmRmJHJhY2VbZGYkUkFDRSA9PSA3XSA8LSBcIk90aGVyXCJcbmRmJHJhY2VbZGYkUkFDRSA9PSA4XSA8LSBcIlR3byByYWNlc1wiXG5kZiRyYWNlW2RmJFJBQ0UgPT0gOV0gPC0gXCJUaHJlZSBvciBtb3JlIHJhY2VzXCJcbmRmJHJhY2VbZGYkSElTUEFOID09IDFdIDwtIFwiSGlzcGFuaWNcIlxuZGYkcmFjZVtkZiRISVNQQU4gPT0gMl0gPC0gXCJIaXNwYW5pY1wiXG5kZiRyYWNlW2RmJEhJU1BBTiA9PSAzXSA8LSBcIkhpc3BhbmljXCJcbmRmJHJhY2VbZGYkSElTUEFOID09IDRdIDwtIFwiSGlzcGFuaWNcIlxuYGBgIn0= -->
+<pre class="r"><code>df$race &lt;- NA
+df$race[df$RACE == 1] &lt;- &quot;White&quot;
+df$race[df$RACE == 2] &lt;- &quot;Black&quot;
+df$race[df$RACE == 3] &lt;- &quot;Native&quot;
+df$race[df$RACE == 4] &lt;- &quot;Asian&quot;
+df$race[df$RACE == 5] &lt;- &quot;Asian&quot;
+df$race[df$RACE == 6] &lt;- &quot;Asian&quot;
+df$race[df$RACE == 7] &lt;- &quot;Other&quot;
+df$race[df$RACE == 8] &lt;- &quot;Two races&quot;
+df$race[df$RACE == 9] &lt;- &quot;Three or more races&quot;
+df$race[df$HISPAN == 1] &lt;- &quot;Hispanic&quot;
+df$race[df$HISPAN == 2] &lt;- &quot;Hispanic&quot;
+df$race[df$HISPAN == 3] &lt;- &quot;Hispanic&quot;
+df$race[df$HISPAN == 4] &lt;- &quot;Hispanic&quot;</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYkc2V4IDwtIGFzLmZhY3RvcihkZiRTRVgpXG5kZiRtZXRybyA8LSBhcy5mYWN0b3IoZGYkTUVUUk8pXG5kZiR5ZWFyIDwtIGFzLmZhY3RvcihkZiRZRUFSKVxuZGYkYWdlX3NxIDwtIGRmJEFHRSBeIDJcbmRmJHN0YXRlIDwtIGFzLmZhY3RvcihkZiRTVEFURUZJUClcbmRmJG51bV9kZXAgPC0gZGYkbXBpX3Njb3JlICogOVxuZGYkcmFjZSA8LSBhcy5mYWN0b3IoZGYkcmFjZSlcbmRmJHJhY2UgPC0gcmVsZXZlbChkZiRyYWNlLCBcIk90aGVyXCIpXG5zZXQuc2VlZCg0MilcbmRmX3NhbXBsZSA8LSBzYW1wbGVfZnJhYyhkZiwgMC4xMClcbm1vZDEgPC0gbG0obnVtX2RlcCB+IHNleCtyYWNlK21ldHJvK0FHRSthZ2Vfc3Erc3RhdGUreWVhciwgd2VpZ2h0cyA9IFBFUldULCBkYXRhID0gZGZfc2FtcGxlKVxubW9kMSRuZXdzZSA8LSB2Y292SEMobW9kMSwgdHlwZT1cIkhDM1wiKVxubW9kMS5kaXNwbGF5IDwtIGNvZWZ0ZXN0KG1vZDEsIG1vZDEkbmV3c2UpXG50aWR5X291dHB1dCA8LSBicm9vbTo6dGlkeShtb2QxLmRpc3BsYXkpXG50aWR5X291dHB1dFssMjo1XSA8LSByb3VuZCh0aWR5X291dHB1dFssMjo1XSwgMylcbnRpZHlfb3V0cHV0IDwtIGtuaXRyOjprYWJsZSh0aWR5X291dHB1dCwgXCJodG1sXCIpXG50aWR5X291dHB1dFxuYGBgIn0= -->
+<pre class="r"><code>df$sex &lt;- as.factor(df$SEX)
+df$metro &lt;- as.factor(df$METRO)
+df$year &lt;- as.factor(df$YEAR)
+df$age_sq &lt;- df$AGE ^ 2
+df$state &lt;- as.factor(df$STATEFIP)
+df$num_dep &lt;- df$mpi_score * 9
+df$race &lt;- as.factor(df$race)
+df$race &lt;- relevel(df$race, &quot;Other&quot;)
+set.seed(42)
+df_sample &lt;- sample_frac(df, 0.10)
+mod1 &lt;- lm(num_dep ~ sex+race+metro+AGE+age_sq+state+year, weights = PERWT, data = df_sample)
+mod1$newse &lt;- vcovHC(mod1, type=&quot;HC3&quot;)
+mod1.display &lt;- coeftest(mod1, mod1$newse)
+tidy_output &lt;- broom::tidy(mod1.display)
+tidy_output[,2:5] &lt;- round(tidy_output[,2:5], 3)
+tidy_output &lt;- knitr::kable(tidy_output, &quot;html&quot;)
+tidy_output</code></pre>
+<!-- rnb-source-end -->
 
-    apply
+<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
 
-View the Choroplethr documentation here: www.AriLamstein.com/open-source</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0bWFwKVxuYGBgIn0= -->
-<pre class="r"><code>library(tmap)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDjpLzjuLF0bWFw46S847iyIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gMy40LjNcbiJ9 -->
-<pre><code>package &lt;U+393C&gt;&lt;U+3E31&gt;tmap&lt;U+393C&gt;&lt;U+3E32&gt; was built under R version 3.4.3</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShmZWF0aGVyKVxubGlicmFyeShzdXJ2ZXkpXG5gYGAifQ== -->
-<pre class="r"><code>library(feather)
-library(survey)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBncmlkXG5Mb2FkaW5nIHJlcXVpcmVkIHBhY2thZ2U6IE1hdHJpeFxuXG5BdHRhY2hpbmcgcGFja2FnZTog46S847ixTWF0cml446S847iyXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOOkvOO4sXBhY2thZ2U6dGlkeXLjpLzjuLI6XG5cbiAgICBleHBhbmRcblxuTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBzdXJ2aXZhbFxuXG5BdHRhY2hpbmcgcGFja2FnZTog46S847ixc3VydmV546S847iyXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOOkvOO4sXBhY2thZ2U6Z3JhcGhpY3PjpLzjuLI6XG5cbiAgICBkb3RjaGFydFxuIn0= -->
-<pre><code>Loading required package: grid
-Loading required package: Matrix
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+2.024
+</td>
+<td style="text-align:right;">
+0.041
+</td>
+<td style="text-align:right;">
+49.253
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sex2
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+-0.968
+</td>
+<td style="text-align:right;">
+0.333
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceAsian
+</td>
+<td style="text-align:right;">
+-0.227
+</td>
+<td style="text-align:right;">
+0.039
+</td>
+<td style="text-align:right;">
+-5.830
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceBlack
+</td>
+<td style="text-align:right;">
+0.181
+</td>
+<td style="text-align:right;">
+0.039
+</td>
+<td style="text-align:right;">
+4.670
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceHispanic
+</td>
+<td style="text-align:right;">
+0.487
+</td>
+<td style="text-align:right;">
+0.039
+</td>
+<td style="text-align:right;">
+12.577
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceNative
+</td>
+<td style="text-align:right;">
+0.338
+</td>
+<td style="text-align:right;">
+0.043
+</td>
+<td style="text-align:right;">
+7.836
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceThree or more races
+</td>
+<td style="text-align:right;">
+-0.326
+</td>
+<td style="text-align:right;">
+0.048
+</td>
+<td style="text-align:right;">
+-6.853
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceTwo races
+</td>
+<td style="text-align:right;">
+-0.229
+</td>
+<td style="text-align:right;">
+0.040
+</td>
+<td style="text-align:right;">
+-5.739
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceWhite
+</td>
+<td style="text-align:right;">
+-0.493
+</td>
+<td style="text-align:right;">
+0.038
+</td>
+<td style="text-align:right;">
+-12.827
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro1
+</td>
+<td style="text-align:right;">
+0.075
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+11.227
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro2
+</td>
+<td style="text-align:right;">
+0.071
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+10.156
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro3
+</td>
+<td style="text-align:right;">
+-0.315
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-60.154
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro4
+</td>
+<td style="text-align:right;">
+-0.185
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-37.909
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AGE
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+-125.724
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+age_sq
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+139.216
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state2
+</td>
+<td style="text-align:right;">
+-0.295
+</td>
+<td style="text-align:right;">
+0.042
+</td>
+<td style="text-align:right;">
+-7.104
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state4
+</td>
+<td style="text-align:right;">
+-0.120
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-7.064
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state5
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+2.057
+</td>
+<td style="text-align:right;">
+0.040
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state6
+</td>
+<td style="text-align:right;">
+-0.115
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:right;">
+-8.079
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state8
+</td>
+<td style="text-align:right;">
+-0.329
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-19.743
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state9
+</td>
+<td style="text-align:right;">
+-0.229
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+-12.609
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state10
+</td>
+<td style="text-align:right;">
+-0.062
+</td>
+<td style="text-align:right;">
+0.030
+</td>
+<td style="text-align:right;">
+-2.052
+</td>
+<td style="text-align:right;">
+0.040
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state11
+</td>
+<td style="text-align:right;">
+-0.411
+</td>
+<td style="text-align:right;">
+0.037
+</td>
+<td style="text-align:right;">
+-11.249
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state12
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+-2.071
+</td>
+<td style="text-align:right;">
+0.038
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state13
+</td>
+<td style="text-align:right;">
+-0.038
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-2.370
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state15
+</td>
+<td style="text-align:right;">
+-0.314
+</td>
+<td style="text-align:right;">
+0.026
+</td>
+<td style="text-align:right;">
+-12.236
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state16
+</td>
+<td style="text-align:right;">
+-0.114
+</td>
+<td style="text-align:right;">
+0.026
+</td>
+<td style="text-align:right;">
+-4.401
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state17
+</td>
+<td style="text-align:right;">
+-0.208
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+-13.683
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state18
+</td>
+<td style="text-align:right;">
+-0.039
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-2.334
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state19
+</td>
+<td style="text-align:right;">
+-0.267
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:right;">
+-13.428
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state20
+</td>
+<td style="text-align:right;">
+-0.234
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:right;">
+-11.508
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state21
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+1.252
+</td>
+<td style="text-align:right;">
+0.210
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state22
+</td>
+<td style="text-align:right;">
+0.064
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+3.306
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state23
+</td>
+<td style="text-align:right;">
+-0.055
+</td>
+<td style="text-align:right;">
+0.027
+</td>
+<td style="text-align:right;">
+-2.030
+</td>
+<td style="text-align:right;">
+0.042
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state24
+</td>
+<td style="text-align:right;">
+-0.302
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-18.133
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state25
+</td>
+<td style="text-align:right;">
+-0.180
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-11.113
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state26
+</td>
+<td style="text-align:right;">
+-0.107
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-6.802
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state27
+</td>
+<td style="text-align:right;">
+-0.287
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-16.512
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state28
+</td>
+<td style="text-align:right;">
+0.039
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+1.823
+</td>
+<td style="text-align:right;">
+0.068
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state29
+</td>
+<td style="text-align:right;">
+-0.046
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-2.673
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state30
+</td>
+<td style="text-align:right;">
+-0.188
+</td>
+<td style="text-align:right;">
+0.031
+</td>
+<td style="text-align:right;">
+-6.040
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state31
+</td>
+<td style="text-align:right;">
+-0.252
+</td>
+<td style="text-align:right;">
+0.023
+</td>
+<td style="text-align:right;">
+-10.836
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state32
+</td>
+<td style="text-align:right;">
+-0.081
+</td>
+<td style="text-align:right;">
+0.021
+</td>
+<td style="text-align:right;">
+-3.913
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state33
+</td>
+<td style="text-align:right;">
+-0.309
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+<td style="text-align:right;">
+-12.778
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state34
+</td>
+<td style="text-align:right;">
+-0.130
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-8.115
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state35
+</td>
+<td style="text-align:right;">
+-0.234
+</td>
+<td style="text-align:right;">
+0.025
+</td>
+<td style="text-align:right;">
+-9.481
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state36
+</td>
+<td style="text-align:right;">
+-0.141
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+-9.479
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state37
+</td>
+<td style="text-align:right;">
+-0.084
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-5.263
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state38
+</td>
+<td style="text-align:right;">
+-0.293
+</td>
+<td style="text-align:right;">
+0.034
+</td>
+<td style="text-align:right;">
+-8.597
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state39
+</td>
+<td style="text-align:right;">
+-0.069
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+-4.500
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state40
+</td>
+<td style="text-align:right;">
+-0.088
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+-4.561
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state41
+</td>
+<td style="text-align:right;">
+-0.106
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+-5.623
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state42
+</td>
+<td style="text-align:right;">
+-0.064
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-4.144
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state44
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+0.029
+</td>
+<td style="text-align:right;">
+0.651
+</td>
+<td style="text-align:right;">
+0.515
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state45
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+0.018
+</td>
+<td style="text-align:right;">
+-1.702
+</td>
+<td style="text-align:right;">
+0.089
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state46
+</td>
+<td style="text-align:right;">
+-0.310
+</td>
+<td style="text-align:right;">
+0.029
+</td>
+<td style="text-align:right;">
+-10.693
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state47
+</td>
+<td style="text-align:right;">
+-0.007
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-0.411
+</td>
+<td style="text-align:right;">
+0.681
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state48
+</td>
+<td style="text-align:right;">
+-0.136
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:right;">
+-9.378
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state49
+</td>
+<td style="text-align:right;">
+-0.230
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+-11.873
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state50
+</td>
+<td style="text-align:right;">
+-0.247
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:right;">
+-6.959
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state51
+</td>
+<td style="text-align:right;">
+-0.253
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-15.689
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state53
+</td>
+<td style="text-align:right;">
+-0.199
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+-12.396
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state54
+</td>
+<td style="text-align:right;">
+0.028
+</td>
+<td style="text-align:right;">
+0.025
+</td>
+<td style="text-align:right;">
+1.158
+</td>
+<td style="text-align:right;">
+0.247
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state55
+</td>
+<td style="text-align:right;">
+-0.212
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+<td style="text-align:right;">
+-12.203
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state56
+</td>
+<td style="text-align:right;">
+-0.387
+</td>
+<td style="text-align:right;">
+0.034
+</td>
+<td style="text-align:right;">
+-11.494
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2014
+</td>
+<td style="text-align:right;">
+-0.050
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-11.603
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2015
+</td>
+<td style="text-align:right;">
+-0.121
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-28.228
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2016
+</td>
+<td style="text-align:right;">
+-0.162
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-38.004
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+</tbody>
+</table>
 
-Attaching package: &lt;U+393C&gt;&lt;U+3E31&gt;Matrix&lt;U+393C&gt;&lt;U+3E32&gt;
 
-The following object is masked from &lt;U+393C&gt;&lt;U+3E31&gt;package:tidyr&lt;U+393C&gt;&lt;U+3E32&gt;:
+<!-- rnb-html-end -->
 
-    expand
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kMiA8LSBsbShtcGlfcG9vciB+IHNleCtyYWNlK21ldHJvK0FHRSthZ2Vfc3Erc3RhdGUreWVhciwgd2VpZ2h0cyA9IFBFUldULCBkYXRhID0gZGZfc2FtcGxlKVxubW9kMiRuZXdzZSA8LSB2Y292SEMobW9kMiwgdHlwZT1cIkhDM1wiKVxubW9kMi5kaXNwbGF5IDwtIGNvZWZ0ZXN0KG1vZDIsIG1vZDIkbmV3c2UpXG50aWR5X291dHB1dCA8LSBicm9vbTo6dGlkeShtb2QyLmRpc3BsYXkpXG50aWR5X291dHB1dFssMjo1XSA8LSByb3VuZCh0aWR5X291dHB1dFssMjo1XSwgMylcbnRpZHlfb3V0cHV0IDwtIGtuaXRyOjprYWJsZSh0aWR5X291dHB1dCwgXCJodG1sXCIpXG50aWR5X291dHB1dFxuYGBgIn0= -->
+<pre class="r"><code>mod2 &lt;- lm(mpi_poor ~ sex+race+metro+AGE+age_sq+state+year, weights = PERWT, data = df_sample)
+mod2$newse &lt;- vcovHC(mod2, type=&quot;HC3&quot;)
+mod2.display &lt;- coeftest(mod2, mod2$newse)
+tidy_output &lt;- broom::tidy(mod2.display)
+tidy_output[,2:5] &lt;- round(tidy_output[,2:5], 3)
+tidy_output &lt;- knitr::kable(tidy_output, &quot;html&quot;)
+tidy_output</code></pre>
+<!-- rnb-source-end -->
 
-Loading required package: survival
+<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
 
-Attaching package: &lt;U+393C&gt;&lt;U+3E31&gt;survey&lt;U+393C&gt;&lt;U+3E32&gt;
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.343
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+29.309
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sex2
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-0.579
+</td>
+<td style="text-align:right;">
+0.563
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceAsian
+</td>
+<td style="text-align:right;">
+-0.054
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-4.902
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceBlack
+</td>
+<td style="text-align:right;">
+0.048
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+4.355
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceHispanic
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+9.061
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceNative
+</td>
+<td style="text-align:right;">
+0.067
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+5.372
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceThree or more races
+</td>
+<td style="text-align:right;">
+-0.062
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:right;">
+-4.561
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceTwo races
+</td>
+<td style="text-align:right;">
+-0.043
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-3.770
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceWhite
+</td>
+<td style="text-align:right;">
+-0.100
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-9.160
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro1
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+8.380
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro2
+</td>
+<td style="text-align:right;">
+0.019
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+9.306
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro3
+</td>
+<td style="text-align:right;">
+-0.061
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-41.537
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro4
+</td>
+<td style="text-align:right;">
+-0.033
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-24.103
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AGE
+</td>
+<td style="text-align:right;">
+-0.006
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+-78.751
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+age_sq
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+86.962
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state2
+</td>
+<td style="text-align:right;">
+-0.077
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+-6.599
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state4
+</td>
+<td style="text-align:right;">
+-0.030
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-6.363
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state5
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+1.073
+</td>
+<td style="text-align:right;">
+0.283
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state6
+</td>
+<td style="text-align:right;">
+-0.030
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-7.436
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state8
+</td>
+<td style="text-align:right;">
+-0.072
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-15.430
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state9
+</td>
+<td style="text-align:right;">
+-0.047
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-9.388
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state10
+</td>
+<td style="text-align:right;">
+-0.013
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+-1.544
+</td>
+<td style="text-align:right;">
+0.122
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state11
+</td>
+<td style="text-align:right;">
+-0.095
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-9.430
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state12
+</td>
+<td style="text-align:right;">
+-0.012
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-2.945
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state13
+</td>
+<td style="text-align:right;">
+-0.008
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-1.870
+</td>
+<td style="text-align:right;">
+0.062
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state15
+</td>
+<td style="text-align:right;">
+-0.079
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-11.625
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state16
+</td>
+<td style="text-align:right;">
+-0.030
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-4.055
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state17
+</td>
+<td style="text-align:right;">
+-0.041
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-9.630
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state18
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-2.259
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state19
+</td>
+<td style="text-align:right;">
+-0.056
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-10.406
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state20
+</td>
+<td style="text-align:right;">
+-0.051
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-8.985
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state21
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+1.908
+</td>
+<td style="text-align:right;">
+0.056
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state22
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+2.444
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state23
+</td>
+<td style="text-align:right;">
+-0.013
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+-1.722
+</td>
+<td style="text-align:right;">
+0.085
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state24
+</td>
+<td style="text-align:right;">
+-0.062
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-13.381
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state25
+</td>
+<td style="text-align:right;">
+-0.036
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-7.914
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state26
+</td>
+<td style="text-align:right;">
+-0.023
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-5.099
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state27
+</td>
+<td style="text-align:right;">
+-0.057
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-11.901
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state28
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+1.430
+</td>
+<td style="text-align:right;">
+0.153
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state29
+</td>
+<td style="text-align:right;">
+-0.008
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-1.682
+</td>
+<td style="text-align:right;">
+0.092
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state30
+</td>
+<td style="text-align:right;">
+-0.042
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+-4.765
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state31
+</td>
+<td style="text-align:right;">
+-0.053
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-8.222
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state32
+</td>
+<td style="text-align:right;">
+-0.027
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-4.541
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state33
+</td>
+<td style="text-align:right;">
+-0.061
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-9.159
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state34
+</td>
+<td style="text-align:right;">
+-0.025
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-5.653
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state35
+</td>
+<td style="text-align:right;">
+-0.056
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-7.692
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state36
+</td>
+<td style="text-align:right;">
+-0.027
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-6.510
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state37
+</td>
+<td style="text-align:right;">
+-0.018
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-4.070
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state38
+</td>
+<td style="text-align:right;">
+-0.060
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-6.181
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state39
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-2.635
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state40
+</td>
+<td style="text-align:right;">
+-0.026
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-4.782
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state41
+</td>
+<td style="text-align:right;">
+-0.029
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-5.515
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state42
+</td>
+<td style="text-align:right;">
+-0.009
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-2.041
+</td>
+<td style="text-align:right;">
+0.041
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state44
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+0.511
+</td>
+<td style="text-align:right;">
+0.610
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state45
+</td>
+<td style="text-align:right;">
+-0.010
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-1.994
+</td>
+<td style="text-align:right;">
+0.046
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state46
+</td>
+<td style="text-align:right;">
+-0.060
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+-7.666
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state47
+</td>
+<td style="text-align:right;">
+-0.002
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-0.420
+</td>
+<td style="text-align:right;">
+0.675
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state48
+</td>
+<td style="text-align:right;">
+-0.030
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-7.300
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state49
+</td>
+<td style="text-align:right;">
+-0.053
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-9.827
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state50
+</td>
+<td style="text-align:right;">
+-0.059
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-6.178
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state51
+</td>
+<td style="text-align:right;">
+-0.050
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-10.984
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state53
+</td>
+<td style="text-align:right;">
+-0.043
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-9.441
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state54
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+0.720
+</td>
+<td style="text-align:right;">
+0.471
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state55
+</td>
+<td style="text-align:right;">
+-0.045
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-9.333
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state56
+</td>
+<td style="text-align:right;">
+-0.092
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+-9.895
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2014
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-8.820
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2015
+</td>
+<td style="text-align:right;">
+-0.025
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-20.859
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2016
+</td>
+<td style="text-align:right;">
+-0.034
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-28.885
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+</tbody>
+</table>
 
-The following object is masked from &lt;U+393C&gt;&lt;U+3E31&gt;package:graphics&lt;U+393C&gt;&lt;U+3E32&gt;:
 
-    dotchart</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdGVfZGYgPC0gcmVhZF9jc3YoXCJzdGF0ZV95ZWFyX21waS5jc3ZcIilcbmBgYCJ9 -->
-<pre class="r"><code>state_df &lt;- read_csv(&quot;state_year_mpi.csv&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUGFyc2VkIHdpdGggY29sdW1uIHNwZWNpZmljYXRpb246XG5jb2xzKFxuICAuZGVmYXVsdCA9IGNvbF9kb3VibGUoKSxcbiAgU1RBVEVGSVAgPSBjb2xfaW50ZWdlcigpLFxuICBZRUFSID0gY29sX2ludGVnZXIoKSxcbiAgYWRqX2hjX3JhbmsgPSBjb2xfaW50ZWdlcigpLFxuICBoZWFkY291bnRfcmFuayA9IGNvbF9pbnRlZ2VyKCksXG4gIHBlcl9jb25faW5jX3JhbmsgPSBjb2xfaW50ZWdlcigpLFxuICBwZXJfY29uX2VtcF9yYW5rID0gY29sX2ludGVnZXIoKSxcbiAgcGVyX2Nvbl9obHRoX3JhbmsgPSBjb2xfaW50ZWdlcigpLFxuICBwZXJfY29uX2Rpc19yYW5rID0gY29sX2ludGVnZXIoKSxcbiAgcGVyX2Nvbl9lZHVfcmFuayA9IGNvbF9pbnRlZ2VyKCksXG4gIHBlcl9jb25fY3Jvd2RfcmFuayA9IGNvbF9pbnRlZ2VyKCksXG4gIHBlcl9jb25faGNvc3RfcmFuayA9IGNvbF9pbnRlZ2VyKCksXG4gIHBlcl9jb25faW50X3JhbmsgPSBjb2xfaW50ZWdlcigpLFxuICBwZXJfY29uX2xuZ19yYW5rID0gY29sX2ludGVnZXIoKVxuKVxuU2VlIHNwZWMoLi4uKSBmb3IgZnVsbCBjb2x1bW4gc3BlY2lmaWNhdGlvbnMuXG4ifQ== -->
-<pre><code>Parsed with column specification:
-cols(
-  .default = col_double(),
-  STATEFIP = col_integer(),
-  YEAR = col_integer(),
-  adj_hc_rank = col_integer(),
-  headcount_rank = col_integer(),
-  per_con_inc_rank = col_integer(),
-  per_con_emp_rank = col_integer(),
-  per_con_hlth_rank = col_integer(),
-  per_con_dis_rank = col_integer(),
-  per_con_edu_rank = col_integer(),
-  per_con_crowd_rank = col_integer(),
-  per_con_hcost_rank = col_integer(),
-  per_con_int_rank = col_integer(),
-  per_con_lng_rank = col_integer()
-)
-See spec(...) for full column specifications.</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdGVfZmlwcyA8LSByZWFkX2NzdihcIkM6L1VzZXJzL25hdGVrL0dvb2dsZSBEcml2ZS9EaXNzZXJ0YXRpb24vc3RhdGUgbmFtZXMgYW5kIG1lZGljYWlkLmNzdlwiKVxuYGBgIn0= -->
-<pre class="r"><code>state_fips &lt;- read_csv(&quot;C:/Users/natek/Google Drive/Dissertation/state names and medicaid.csv&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUGFyc2VkIHdpdGggY29sdW1uIHNwZWNpZmljYXRpb246XG5jb2xzKFxuICBTVEFURUZJUCA9IGNvbF9pbnRlZ2VyKCksXG4gIFN0YXRlID0gY29sX2NoYXJhY3RlcigpLFxuICBzdF9hYnIgPSBjb2xfY2hhcmFjdGVyKCksXG4gIE1lZGljYWlkX0V4cGFuc2lvbiA9IGNvbF9pbnRlZ2VyKClcbilcbiJ9 -->
-<pre><code>Parsed with column specification:
-cols(
-  STATEFIP = col_integer(),
-  State = col_character(),
-  st_abr = col_character(),
-  Medicaid_Expansion = col_integer()
-)</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdGVfZGYgPC0gbGVmdF9qb2luKHN0YXRlX2RmLCBzdGF0ZV9maXBzLCBieSA9IFwiU1RBVEVGSVBcIilcbmBgYCJ9 -->
-<pre class="r"><code>state_df &lt;- left_join(state_df, state_fips, by = &quot;STATEFIP&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdGVfbWQgPC0gc3RhdGVfZGYgJT4lXG4gIGdyb3VwX2J5KFlFQVIsIE1lZGljYWlkX0V4cGFuc2lvbikgJT4lXG4gIHN1bW1hcml6ZShhZGpfaGMgPSBtZWFuKGFkal9oYyksXG4gICAgICAgICAgICBwZXJfY29uX2hsdGggPSBtZWFuKHBlcl9jb25faGx0aCkpXG5zdGF0ZV9tZCRNZWRpY2FpZF9FeHBhbnNpb24gPC0gYXMuZmFjdG9yKHN0YXRlX21kJE1lZGljYWlkX0V4cGFuc2lvbilcbnBuZyhcImZpZ181XzZfcGVyX2Nvbl9obHRoX21lZGljYWlkLnBuZ1wiLCB3aWR0aCA9IDYwMCwgaGVpZ2h0ID0gNDAwKVxuZ2dwbG90KGRhdGEgPSBzdGF0ZV9tZCwgYWVzKFlFQVIsIHBlcl9jb25faGx0aCAqIDEwMCwgZ3JvdXAgPSBNZWRpY2FpZF9FeHBhbnNpb24sIGxpbmV0eXBlID0gTWVkaWNhaWRfRXhwYW5zaW9uKSkgKyBnZW9tX2xpbmUoKSArIGxhYnModGl0bGUgPSBcIkZpZ3VyZSA1LjYgUGVyY2VudCBDb250cmlidXRpb24gb2YgSGVhbHRoIEluc3VyYW5jZSBvdmVyIHRpbWVcIiwgeCA9IFwiWWVhclwiLCB5ID0gXCJQZXJjZW50IENvbnRyaWJ1dGlvbiBvZiBIZWFsdGggSW5zdXJhbmNlXCIpICsgdGhlbWVfdHVmdGUoKSArIHNjYWxlX2xpbmV0eXBlX2Rpc2NyZXRlKG5hbWUgPSBcIk1lZGljYWlkXFxuRXhwYW5zaW9uXCIsIGJyZWFrcyA9IGMoXCIxXCIsIFwiMFwiKSwgbGFiZWxzID0gYyhcIlllc1wiLCBcIk5vXCIpKVxuZGV2Lm9mZigpXG5gYGAifQ== -->
-<pre class="r"><code>state_md &lt;- state_df %&gt;%
-  group_by(YEAR, Medicaid_Expansion) %&gt;%
-  summarize(adj_hc = mean(adj_hc),
-            per_con_hlth = mean(per_con_hlth))
-state_md$Medicaid_Expansion &lt;- as.factor(state_md$Medicaid_Expansion)
-png(&quot;fig_5_6_per_con_hlth_medicaid.png&quot;, width = 600, height = 400)
-ggplot(data = state_md, aes(YEAR, per_con_hlth * 100, group = Medicaid_Expansion, linetype = Medicaid_Expansion)) + geom_line() + labs(title = &quot;Figure 5.6 Percent Contribution of Health Insurance over time&quot;, x = &quot;Year&quot;, y = &quot;Percent Contribution of Health Insurance&quot;) + theme_tufte() + scale_linetype_discrete(name = &quot;Medicaid\nExpansion&quot;, breaks = c(&quot;1&quot;, &quot;0&quot;), labels = c(&quot;Yes&quot;, &quot;No&quot;))
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjpbInN0YXRlX2RmJE1lZGljYWlkX0V4cGFuc2lvbiA8LSBhcy5mYWN0b3Ioc3RhdGVfZGYkTWVkaWNhaWRfRXhwYW5zaW9uKSIsInN0YXRlX2RmMTMxNSA8LSBzdGF0ZV9kZiAlPiUgZmlsdGVyKFlFQVIgIT0gMjAxNikiLCJkZHJlZzEgPC0gbG0oYWRqX2hjfllFQVIqTWVkaWNhaWRfRXhwYW5zaW9uLCBkYXRhID0gc3RhdGVfZGYxMzE1KSIsInN1bW1hcnkoZGRyZWcxKSIsImRkcmVnMiA8LSBsbShwZXJfY29uX2hsdGh+WUVBUipNZWRpY2FpZF9FeHBhbnNpb24sIGRhdGEgPSBzdGF0ZV9kZjEzMTUpIiwic3VtbWFyeShkZHJlZzIpIl19 -->
-<pre class="r"><code>state_df$Medicaid_Expansion &lt;- as.factor(state_df$Medicaid_Expansion)
-state_df1315 &lt;- state_df %&gt;% filter(YEAR != 2016)
-ddreg1 &lt;- lm(adj_hc~YEAR*Medicaid_Expansion, data = state_df1315)
-summary(ddreg1)
-ddreg2 &lt;- lm(per_con_hlth~YEAR*Medicaid_Expansion, data = state_df1315)
-summary(ddreg2)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfM19zdGF0ZV9tcGlfdGltZS5wbmdcIiwgaGVpZ2h0ID0gNDAwLCB3aWR0aCA9IDYwMClcbmdncGxvdChzdGF0ZV9kZiwgYWVzKFlFQVIsIGFkal9oYyAqMTAwKSkgK1xuICBnZW9tX2xpbmUoKSArXG4gIHNjYWxlX3hfY29udGludW91cyhsYWJlbHMgPSBmdW5jdGlvbih4KSBwYXN0ZTAoXCInXCIsIHN1YnN0cih4LCAzLCA0KSkpICtcbiAgc2NhbGVfeV9jb250aW51b3VzKGJyZWFrcyA9IGMoNCwgNywgMTApKSArXG4gICN0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X2JsYW5rKCksIGF4aXMudGlja3MgPSBlbGVtZW50X2JsYW5rKCkpICtcbiAgZmFjZXRfZ2VvKH5zdF9hYnIpICtcbiAgbGFicyh0aXRsZSA9IFwiRmlndXJlIDUuMyBNdWx0aWRpbWVuc2lvbmFsIFBvdmVydHkgaW4gVS5TLiBzdGF0ZXMgZnJvbSAyMDEzIHRvIDIwMTZcIiwgeCA9IFwiWWVhclwiLCB5ID0gXCJBZGp1c3RlZCBIZWFkY291bnRcIixcbiAgICAgICBjYXB0aW9uID0gXCJTb3VyY2U6IEF1dGhvcidzIGFuYWx5c2lzIG9mIEFtZXJpY2FuIENvbW11bml0eSBTdXJ2ZXkgZGF0YSB2aWEgSVBVTVNcIilcbmRldi5vZmYoKVxuYGBgIn0= -->
-<pre class="r"><code>png(&quot;fig_5_3_state_mpi_time.png&quot;, height = 400, width = 600)
-ggplot(state_df, aes(YEAR, adj_hc *100)) +
-  geom_line() +
-  scale_x_continuous(labels = function(x) paste0(&quot;'&quot;, substr(x, 3, 4))) +
-  scale_y_continuous(breaks = c(4, 7, 10)) +
-  #theme(axis.text = element_blank(), axis.ticks = element_blank()) +
-  facet_geo(~st_abr) +
-  labs(title = &quot;Figure 5.3 Multidimensional Poverty in U.S. states from 2013 to 2016&quot;, x = &quot;Year&quot;, y = &quot;Adjusted Headcount&quot;,
-       caption = &quot;Source: Author's analysis of American Community Survey data via IPUMS&quot;)
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<div id="percent-contribution-of-health-insurance" class="section level1">
-<h1>Percent contribution of health insurance</h1>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfNV9wZXJfY29uX2hsdGhfbWVkaWNhaWRfc3RhdGUucG5nXCIsIGhlaWdodCA9IDQwMCwgd2lkdGggPSA2MDApXG5nZ3Bsb3Qoc3RhdGVfZGYsIGFlcyhZRUFSLCBwZXJfY29uX2hsdGggKjEwMCwgbGluZXR5cGUgPSBhcy5mYWN0b3IoTWVkaWNhaWRfRXhwYW5zaW9uKSkpICtcbiAgZ2VvbV9saW5lKCkgKyBndWlkZXMobGluZXR5cGUgPSBGQUxTRSkgK1xuICBzY2FsZV94X2NvbnRpbnVvdXMobGFiZWxzID0gZnVuY3Rpb24oeCkgcGFzdGUwKFwiJ1wiLCBzdWJzdHIoeCwgMywgNCkpKSArXG4gICNzY2FsZV95X2NvbnRpbnVvdXMoYnJlYWtzID0gYyg0LCA3LCAxMCkpICtcbiAgI3RoZW1lKGF4aXMudGV4dCA9IGVsZW1lbnRfYmxhbmsoKSwgYXhpcy50aWNrcyA9IGVsZW1lbnRfYmxhbmsoKSkgK1xuICBmYWNldF9nZW8ofnN0X2FicikgK1xuICBsYWJzKHRpdGxlID0gXCJGaWd1cmUgNS41IFBlcmNlbnQgQ29udHJpYnV0aW9uIG9mIEhlYWx0aCBJbnN1cmFuY2UgdG8gTVBJIGluIFUuUy4gc3RhdGVzIGZyb20gMjAxMyB0byAyMDE2XCIsIHggPSBcIlllYXJcIiwgeSA9IFwiUGVyY2VudFwiLFxuICAgICAgIGNhcHRpb24gPSBcIkRhc2hlZCBsaW5lcyByZXByZXNlbnQgc3RhdGVzIHRoYXQgZXhwYW5kZWQgTWVkaWNhaWQgXFxuU291cmNlOiBBdXRob3IncyBhbmFseXNpcyBvZiBBbWVyaWNhbiBDb21tdW5pdHkgU3VydmV5IGRhdGEgdmlhIElQVU1TXCIpXG5kZXYub2ZmKClcbmBgYCJ9 -->
-<pre class="r"><code>png(&quot;fig_5_5_per_con_hlth_medicaid_state.png&quot;, height = 400, width = 600)
-ggplot(state_df, aes(YEAR, per_con_hlth *100, linetype = as.factor(Medicaid_Expansion))) +
-  geom_line() + guides(linetype = FALSE) +
-  scale_x_continuous(labels = function(x) paste0(&quot;'&quot;, substr(x, 3, 4))) +
-  #scale_y_continuous(breaks = c(4, 7, 10)) +
-  #theme(axis.text = element_blank(), axis.ticks = element_blank()) +
-  facet_geo(~st_abr) +
-  labs(title = &quot;Figure 5.5 Percent Contribution of Health Insurance to MPI in U.S. states from 2013 to 2016&quot;, x = &quot;Year&quot;, y = &quot;Percent&quot;,
-       caption = &quot;Dashed lines represent states that expanded Medicaid \nSource: Author's analysis of American Community Survey data via IPUMS&quot;)
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="state-bar-chart" class="section level1">
-<h1>state bar chart</h1>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYnBsb3RfZGYgPC0gc3RhdGVfZGYgJT4lXG4gIGZpbHRlcihZRUFSID09IDIwMTYpICU+JVxuICBzZWxlY3Qoc3RfYWJyLCBwZXJfY29uX2RpbV9lZHUsIHBlcl9jb25fZGltX2hsdGgsIHBlcl9jb25fZGltX2luYykgJT4lXG4gIG11dGF0ZShIZWFsdGggPSBwZXJfY29uX2RpbV9obHRoICogMTAwLCBFZHVjYXRpb24gPSBwZXJfY29uX2RpbV9lZHUqMTAwLCBFY29ub21pYyA9IHBlcl9jb25fZGltX2luYyAqIDEwMCkgJT4lXG4gIGdhdGhlcihrZXkgPSBcIkRpbWVuc2lvblwiLCB2YWx1ZSA9IFwidmFsdWVcIiwgSGVhbHRoLCBFZHVjYXRpb24sIEVjb25vbWljKVxucG5nKFwiZmlnXzVfNF9wZXJfY29uX3N0YXRlX2Jhcl9jaGFydC5wbmdcIiwgaGVpZ2h0ID0gNDAwLCB3aWR0aCA9IDYwMClcbmdncGxvdChicGxvdF9kZiwgYWVzKERpbWVuc2lvbiwgdmFsdWUsIGZpbGwgPSBEaW1lbnNpb24pKSArXG4gIGd1aWRlcyhmaWxsID0gRkFMU0UpICtcbiAgZ2VvbV9jb2woKSArXG4gIGNvb3JkX2ZsaXAoKSArIFxuICBmYWNldF9nZW8ofnN0X2FicikgK1xuICBsYWJzKHRpdGxlID0gXCJGaWd1cmUgNS40IFBlcmNlbnQgQ29udHJpYnV0aW9uIGJ5IERpbWVuc2lvbiwgMjAxNlwiLCB4ID0gXCJEaW1lbnNpb25cIiwgeSA9IFwiUGVyY2VudCBDb250cmlidXRpb25cIixcbiAgICAgICBjYXB0aW9uID0gXCJTb3VyY2U6IEF1dGhvcidzIGFuYWx5c2lzIG9mIEFtZXJpY2FuIENvbW11bml0eSBTdXJ2ZXkgZGF0YSB2aWEgSVBVTVNcIilcbmRldi5vZmYoKVxuYGBgIn0= -->
-<pre class="r"><code>bplot_df &lt;- state_df %&gt;%
-  filter(YEAR == 2016) %&gt;%
-  select(st_abr, per_con_dim_edu, per_con_dim_hlth, per_con_dim_inc) %&gt;%
-  mutate(Health = per_con_dim_hlth * 100, Education = per_con_dim_edu*100, Economic = per_con_dim_inc * 100) %&gt;%
-  gather(key = &quot;Dimension&quot;, value = &quot;value&quot;, Health, Education, Economic)
-png(&quot;fig_5_4_per_con_state_bar_chart.png&quot;, height = 400, width = 600)
-ggplot(bplot_df, aes(Dimension, value, fill = Dimension)) +
-  guides(fill = FALSE) +
-  geom_col() +
-  coord_flip() + 
-  facet_geo(~st_abr) +
-  labs(title = &quot;Figure 5.4 Percent Contribution by Dimension, 2016&quot;, x = &quot;Dimension&quot;, y = &quot;Percent Contribution&quot;,
-       caption = &quot;Source: Author's analysis of American Community Survey data via IPUMS&quot;)
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="choroplethr-map" class="section level1">
-<h1>choroplethr map</h1>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucmVnaW9uIDwtIHRvbG93ZXIoc3RhdGVfZGYkU3RhdGVbc3RhdGVfZGYkWUVBUiA9PSAyMDE2XSlcbnZhbHVlIDwtIHN0YXRlX2RmJGFkal9oY1tzdGF0ZV9kZiRZRUFSID09IDIwMTZdXG52YWx1ZSA8LSByb3VuZCh2YWx1ZSAqIDEwMCwgMSlcbnBsdF9tYXBfZGYgPC0gZGF0YS5mcmFtZShyZWdpb24sIHZhbHVlKVxucG5nKFwiZmlnXzVfMV9zdGF0ZV9jaG9yby5wbmdcIiwgd2lkdGggPSA2MDAsIGhlaWdodCA9IDM1MClcbnN0YXRlX2Nob3JvcGxldGgocGx0X21hcF9kZikgKyBsYWJzKHRpdGxlID0gXCJGaWd1cmUgNS4xIEFkanVzdGVkIEhlYWRjb3VudCwgMjAxNlwiKSArIHRoZW1lKHBsb3QudGl0bGUgPSBlbGVtZW50X3RleHQoaGp1c3QgPSAwLjUpKVxuYGBgIn0= -->
-<pre class="r"><code>region &lt;- tolower(state_df$State[state_df$YEAR == 2016])
-value &lt;- state_df$adj_hc[state_df$YEAR == 2016]
-value &lt;- round(value * 100, 1)
-plt_map_df &lt;- data.frame(region, value)
-png(&quot;fig_5_1_state_choro.png&quot;, width = 600, height = 350)
-state_choropleth(plt_map_df) + labs(title = &quot;Figure 5.1 Adjusted Headcount, 2016&quot;) + theme(plot.title = element_text(hjust = 0.5))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ29sdW1uIGByZWdpb25gIGpvaW5pbmcgY2hhcmFjdGVyIHZlY3RvciBhbmQgZmFjdG9yLCBjb2VyY2luZyBpbnRvIGNoYXJhY3RlciB2ZWN0b3JcbiJ9 -->
-<pre><code>Column `region` joining character vector and factor, coercing into character vector</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGV2Lm9mZigpXG5gYGAifQ== -->
-<pre class="r"><code>dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="calculate-correlation-coefficient-for-state-income-poverty." class="section level1">
-<h1>calculate correlation coefficient for state income poverty.</h1>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdGVfZGZfMTYgPC0gc3RhdGVfZGYgJT4lIGZpbHRlcihZRUFSID09IDIwMTYpXG5jb3Ioc3RhdGVfZGYkYWRqX2hjLCBzdGF0ZV9kZiRpbmNfaW5jKVxuYGBgIn0= -->
-<pre class="r"><code>state_df_16 &lt;- state_df %&gt;% filter(YEAR == 2016)
-cor(state_df$adj_hc, state_df$inc_inc)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuODI1MjY5NlxuIn0= -->
-<pre><code>[1] 0.8252696</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdGVfZGZfMTYgPC0gc3RhdGVfZGZfMTYgJT4lIGFycmFuZ2UoYWRqX2hjKVxuYGBgIn0= -->
-<pre class="r"><code>state_df_16 &lt;- state_df_16 %&gt;% arrange(adj_hc)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="plot-of-income-poverty-v.-mpi-poverty" class="section level1">
-<h1>Plot of income poverty v. mpi poverty</h1>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfMl9zdGF0ZV9pbmNfbXBpX3NjYXR0ZXIucG5nXCIpXG5nZ3Bsb3Qoc3RhdGVfZGZfMTYsIGFlcyh4ID0gaW5jX2luYyoxMDAsIHkgPSBhZGpfaGMgKiAxMDApKSArIGdlb21fbGFiZWwoYWVzKGxhYmVsID0gc3RfYWJyKSkrIGdlb21fc21vb3RoKG1ldGhvZCA9IFwibG1cIiwgc2UgPSBGQUxTRSkgKyBsYWJzKHRpdGxlID0gXCJGaWd1cmUgNS4yIEluY29tZSBQb3ZlcnR5IGFuZCBBZGp1c3RlZCBIZWFkY291bnQsIDIwMTYgXCIsIHkgPSBcIkFkanVzdGVkIEhlYWRjb3VudFwiLCB4ID0gXCJJbmNvbWUgUG92ZXJ0eVwiKSArIHRoZW1lX3R1ZnRlKClcbmBgYCJ9 -->
-<pre class="r"><code>png(&quot;fig_5_2_state_inc_mpi_scatter.png&quot;)
-ggplot(state_df_16, aes(x = inc_inc*100, y = adj_hc * 100)) + geom_label(aes(label = st_abr))+ geom_smooth(method = &quot;lm&quot;, se = FALSE) + labs(title = &quot;Figure 5.2 Income Poverty and Adjusted Headcount, 2016 &quot;, y = &quot;Adjusted Headcount&quot;, x = &quot;Income Poverty&quot;) + theme_tufte()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<div id="kentucky-analysis" class="section level2">
-<h2>Kentucky analysis</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfc2hwIDwtIHJlYWRPR1IoXCJDOi9Vc2Vycy9uYXRlay9Hb29nbGUgRHJpdmUvRGlzc2VydGF0aW9uL2NiXzIwMTZfMjFfcHVtYTEwXzUwMGtcIiwgbGF5ZXIgPSBcImNiXzIwMTZfMjFfcHVtYTEwXzUwMGtcIiwgR0RBTDFfaW50ZWdlcjY0X3BvbGljeSA9IFRSVUUpIFxuYGBgIn0= -->
-<pre class="r"><code>ky_shp &lt;- readOGR(&quot;C:/Users/natek/Google Drive/Dissertation/cb_2016_21_puma10_500k&quot;, layer = &quot;cb_2016_21_puma10_500k&quot;, GDAL1_integer64_policy = TRUE) </code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiT0dSIGRhdGEgc291cmNlIHdpdGggZHJpdmVyOiBFU1JJIFNoYXBlZmlsZSBcblNvdXJjZTogXCJDOi9Vc2Vycy9uYXRlay9Hb29nbGUgRHJpdmUvRGlzc2VydGF0aW9uL2NiXzIwMTZfMjFfcHVtYTEwXzUwMGtcIiwgbGF5ZXI6IFwiY2JfMjAxNl8yMV9wdW1hMTBfNTAwa1wiXG53aXRoIDM0IGZlYXR1cmVzXG5JdCBoYXMgOCBmaWVsZHNcbkludGVnZXI2NCBmaWVsZHMgcmVhZCBhcyBkb3VibGVzOiAgQUxBTkQxMCBBV0FURVIxMCBcbiJ9 -->
-<pre><code>OGR data source with driver: ESRI Shapefile 
-Source: &quot;C:/Users/natek/Google Drive/Dissertation/cb_2016_21_puma10_500k&quot;, layer: &quot;cb_2016_21_puma10_500k&quot;
-with 34 features
-It has 8 fields
-Integer64 fields read as doubles:  ALAND10 AWATER10 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3Bsb3Qoa3lfc2hwKVxuYGBgIn0= -->
-<pre class="r"><code>#plot(ky_shp)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGYgPC0gcmVhZF9mZWF0aGVyKFwiQzovVXNlcnMvbmF0ZWsvRG9jdW1lbnRzL21waV9leHBfZGYuZmVhdGhlclwiKVxuZGZfa3lfMTYgPC0gZGYgJT4lIGZpbHRlcihTVEFURUZJUCA9PSAyMSAmIFlFQVIgPT0gMjAxNilcbmBgYCJ9 -->
-<pre class="r"><code>df &lt;- read_feather(&quot;C:/Users/natek/Documents/mpi_exp_df.feather&quot;)
-df_ky_16 &lt;- df %&gt;% filter(STATEFIP == 21 &amp; YEAR == 2016)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfa3lfMTYkbXBpX3Njb3JlID0gZGZfa3lfMTYkaW5jb21lX3BvdmVydHkqKDEvOSkgKyBcbiAgZGZfa3lfMTYkZmFtX2VtcCAqKDEvOSkgKyBcbiAgZGZfa3lfMTYkaGVhbHRoKigxLzkpICsgXG4gIGRmX2t5XzE2JGVkdWNhdGlvbiooMS85KSArXG4gIGRmX2t5XzE2JG92ZXJjcm93ZCooMS85KSArXG4gIGRmX2t5XzE2JGNvbXB1dGVyX2ludGVybmV0KigxLzkpICsgXG4gIGRmX2t5XzE2JGRpc2FiaWxpdHkqKDEvOSkgK1xuICBkZl9reV8xNiRsYW5nX2RlcCAqICgxLzkpICtcbiAgZGZfa3lfMTYkaGNvc3RfZGVwICogKDEvOSlcbmRmX2t5XzE2JG1waV9wb29yID0gaWZfZWxzZShkZl9reV8xNiRtcGlfc2NvcmUgPiAuMzIsIDEsIDApXG5gYGAifQ== -->
-<pre class="r"><code>df_ky_16$mpi_score = df_ky_16$income_poverty*(1/9) + 
-  df_ky_16$fam_emp *(1/9) + 
-  df_ky_16$health*(1/9) + 
-  df_ky_16$education*(1/9) +
-  df_ky_16$overcrowd*(1/9) +
-  df_ky_16$computer_internet*(1/9) + 
-  df_ky_16$disability*(1/9) +
-  df_ky_16$lang_dep * (1/9) +
-  df_ky_16$hcost_dep * (1/9)
-df_ky_16$mpi_poor = if_else(df_ky_16$mpi_score &gt; .32, 1, 0)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfc3Z5IDwtIHN2eWRlc2lnbihpZHMgPSB+MSwgd2VpZ2h0cyA9IH5QRVJXVCwgZGF0YSA9IGRmX2t5XzE2KVxua3lfMTZfbWVhbiA8LSBzdnlieSh+bXBpX3Bvb3IgKyBpbmNvbWVfcG92ZXJ0eStmYW1fZW1wK2hlYWx0aCtkaXNhYmlsaXR5K2VkdWNhdGlvbiArIG92ZXJjcm93ZCtoY29zdF9kZXArY29tcHV0ZXJfaW50ZXJuZXQrbGFuZ19kZXAsIH5QVU1BLCBkZXNpZ24gPSBreV9zdnksIHN2eW1lYW4pXG5gYGAifQ== -->
-<pre class="r"><code>ky_svy &lt;- svydesign(ids = ~1, weights = ~PERWT, data = df_ky_16)
-ky_16_mean &lt;- svyby(~mpi_poor + income_poverty+fam_emp+health+disability+education + overcrowd+hcost_dep+computer_internet+lang_dep, ~PUMA, design = ky_svy, svymean)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-</div>
-<div id="intensity-of-deprivation-among-only-the-mpi-poor" class="section level1">
-<h1>Intensity of deprivation among only the MPI poor</h1>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfc3Z5X3AgPC0gc3Vic2V0KGt5X3N2eSwgbXBpX3Bvb3IgPT0gMSlcbmt5XzE2X2ludGVuc2l0eSA8LSBzdnlieSh+bXBpX3Njb3JlLCB+UFVNQSwgZGVzaWduID0ga3lfc3Z5X3AsIHN2eW1lYW4pXG5gYGAifQ== -->
-<pre class="r"><code>ky_svy_p &lt;- subset(ky_svy, mpi_poor == 1)
-ky_16_intensity &lt;- svyby(~mpi_score, ~PUMA, design = ky_svy_p, svymean)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfMTZfbWVhbiA8LSBreV8xNl9tZWFuICU+JSByZW5hbWUoaGVhZGNvdW50ID0gbXBpX3Bvb3IsIGluY19pbmMgPSBpbmNvbWVfcG92ZXJ0eSwgaW5jX2VtcCA9IGZhbV9lbXAsIGluY19oZWFsdGggPSBoZWFsdGgsIGluY19kaXMgPSBkaXNhYmlsaXR5LCBpbmNfZWR1ID0gZWR1Y2F0aW9uLCBpbmNfY3Jvd2QgPSBvdmVyY3Jvd2QsIGluY19ob3VzZSA9IGhjb3N0X2RlcCwgaW5jX2ludCA9IGNvbXB1dGVyX2ludGVybmV0LCBpbmNfbG5nID0gbGFuZ19kZXAsIHNlX2hlYWRjb3VudCA9IHNlLm1waV9wb29yLCBzZV9pbmNfaW5jID0gc2UuaW5jb21lX3BvdmVydHksIHNlX2luY19lbXAgPSBzZS5mYW1fZW1wLCBzZV9pbmNfaGVhbHRoID0gc2UuaGVhbHRoLCBzZV9pbmNfZGlzID0gc2UuZGlzYWJpbGl0eSwgc2VfaW5jX2VkdSA9IHNlLmVkdWNhdGlvbiwgc2VfaW5jX2Nyb3dkID0gc2Uub3ZlcmNyb3dkLCBzZV9pbmNfaG91c2UgPSBzZS5oY29zdF9kZXAsIHNlX2luY19pbnQgPSBzZS5jb21wdXRlcl9pbnRlcm5ldCwgc2VfaW5jX2xuZyA9IHNlLmxhbmdfZGVwKVxua3lfMTZfaW50ZW5zaXR5IDwtIGt5XzE2X2ludGVuc2l0eSAlPiUgcmVuYW1lKGludGVuc2l0eSA9IG1waV9zY29yZSwgaW50X3NlID0gc2UpXG5reV9kZiA8LSBmdWxsX2pvaW4oa3lfMTZfbWVhbiwga3lfMTZfaW50ZW5zaXR5LCBieSA9IGMoXCJQVU1BXCIpKVxua3lfZGYkYWRqX2hjIDwtIGt5X2RmJGhlYWRjb3VudCAqIGt5X2RmJGludGVuc2l0eVxuYGBgIn0= -->
-<pre class="r"><code>ky_16_mean &lt;- ky_16_mean %&gt;% rename(headcount = mpi_poor, inc_inc = income_poverty, inc_emp = fam_emp, inc_health = health, inc_dis = disability, inc_edu = education, inc_crowd = overcrowd, inc_house = hcost_dep, inc_int = computer_internet, inc_lng = lang_dep, se_headcount = se.mpi_poor, se_inc_inc = se.income_poverty, se_inc_emp = se.fam_emp, se_inc_health = se.health, se_inc_dis = se.disability, se_inc_edu = se.education, se_inc_crowd = se.overcrowd, se_inc_house = se.hcost_dep, se_inc_int = se.computer_internet, se_inc_lng = se.lang_dep)
-ky_16_intensity &lt;- ky_16_intensity %&gt;% rename(intensity = mpi_score, int_se = se)
-ky_df &lt;- full_join(ky_16_mean, ky_16_intensity, by = c(&quot;PUMA&quot;))
-ky_df$adj_hc &lt;- ky_df$headcount * ky_df$intensity</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Censored data</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2VuX2RmIDwtIGRmX2t5XzE2XG5jZW5fZGZbY2VuX2RmJG1waV9wb29yID09IDAsIDEyOjIwXSA8LSAwXG5jZW5fZGYgPC0gc3Z5ZGVzaWduKGlkcyA9IH4xLCB3ZWlnaHRzID0gflBFUldULCBkYXRhID0gY2VuX2RmKVxuYGBgIn0= -->
-<pre class="r"><code>cen_df &lt;- df_ky_16
-cen_df[cen_df$mpi_poor == 0, 12:20] &lt;- 0
-cen_df &lt;- svydesign(ids = ~1, weights = ~PERWT, data = cen_df)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2VuX2hjIDwtIHN2eWJ5KH5pbmNvbWVfcG92ZXJ0eStmYW1fZW1wK2hlYWx0aCtkaXNhYmlsaXR5K2VkdWNhdGlvbiArIG92ZXJjcm93ZCtoY29zdF9kZXArY29tcHV0ZXJfaW50ZXJuZXQrbGFuZ19kZXAsIH5QVU1BLCBkZXNpZ24gPSBjZW5fZGYsIHN2eW1lYW4pXG5gYGAifQ== -->
-<pre class="r"><code>cen_hc &lt;- svyby(~income_poverty+fam_emp+health+disability+education + overcrowd+hcost_dep+computer_internet+lang_dep, ~PUMA, design = cen_df, svymean)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY2VuX2hjIDwtIGNlbl9oYyAlPiVcbiAgcmVuYW1lKGNlbl9pbmMgPSBpbmNvbWVfcG92ZXJ0eSwgY2VuX2VtcCA9IGZhbV9lbXAsIGNlbl9oZWFsdGggPSBoZWFsdGgsIGNlbl9kaXNhYmlsaXR5ID0gZGlzYWJpbGl0eSwgY2VuX2VkdSA9IGVkdWNhdGlvbiwgY2VuX2Nyb3dkID0gb3ZlcmNyb3dkLCBjZW5faG91c2UgPSBoY29zdF9kZXAsIGNlbl9pbnQgPSBjb21wdXRlcl9pbnRlcm5ldCwgY2VuX2xuZyA9IGxhbmdfZGVwLCBzZV9jZW5faW5jID0gc2UuaW5jb21lX3BvdmVydHksIHNlX2Nlbl9lbXAgPSBzZS5mYW1fZW1wLCBzZV9jZW5faGVhbHRoID0gc2UuaGVhbHRoLCBzZV9jZW5fZGlzYWJpbGl0eSA9IHNlLmRpc2FiaWxpdHksIHNlX2Nlbl9lZHUgPSBzZS5lZHVjYXRpb24sIHNlX2Nlbl9jcm93ZCA9IHNlLm92ZXJjcm93ZCwgc2VfY2VuX2hvdXNlID0gc2UuaGNvc3RfZGVwLCBzZV9jZW5faW50ID0gc2UuY29tcHV0ZXJfaW50ZXJuZXQsIHNlX2Nlbl9sbmcgPSBzZS5sYW5nX2RlcClcbmBgYCJ9 -->
-<pre class="r"><code>cen_hc &lt;- cen_hc %&gt;%
-  rename(cen_inc = income_poverty, cen_emp = fam_emp, cen_health = health, cen_disability = disability, cen_edu = education, cen_crowd = overcrowd, cen_house = hcost_dep, cen_int = computer_internet, cen_lng = lang_dep, se_cen_inc = se.income_poverty, se_cen_emp = se.fam_emp, se_cen_health = se.health, se_cen_disability = se.disability, se_cen_edu = se.education, se_cen_crowd = se.overcrowd, se_cen_house = se.hcost_dep, se_cen_int = se.computer_internet, se_cen_lng = se.lang_dep)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfZGYgPC0gZnVsbF9qb2luKGt5X2RmLCBjZW5faGMsIGJ5ID0gYyhcIlBVTUFcIikpXG5reV9kZiA8LSBreV9kZiAlPiVcbiAgbXV0YXRlKHBlcl9jb25faW5jID0gKGNlbl9pbmMvYWRqX2hjKSAqICgxLzkpLFxuICAgICAgICAgcGVyX2Nvbl9lbXAgPSAoY2VuX2VtcC9hZGpfaGMpICogKDEvOSksXG4gICAgICAgICBwZXJfY29uX2hsdGggPSAoY2VuX2hlYWx0aC9hZGpfaGMpICogKDEvOSksXG4gICAgICAgICBwZXJfY29uX2RpcyA9IChjZW5fZGlzYWJpbGl0eS9hZGpfaGMpICogKDEvOSksXG4gICAgICAgICBwZXJfY29uX2VkdSA9IChjZW5fZWR1L2Fkal9oYykgKiAoMS85KSxcbiAgICAgICAgIHBlcl9jb25fY3Jvd2QgPSAoY2VuX2Nyb3dkL2Fkal9oYykgKiAoMS85KSxcbiAgICAgICAgIHBlcl9jb25faGNvc3QgPSAoY2VuX2hvdXNlIC8gYWRqX2hjKSAqICgxLzkpLFxuICAgICAgICAgcGVyX2Nvbl9pbnQgPSAoY2VuX2ludCAvIGFkal9oYykgKiAoMS85KSxcbiAgICAgICAgIHBlcl9jb25fbG5nID0gKGNlbl9sbmcgLyBhZGpfaGMpICogKDEvOSksIFxuICAgICAgICAgcGVyX2Nvbl9kaW1fZWR1ID0gcGVyX2Nvbl9lZHUgKyBwZXJfY29uX2ludCArIHBlcl9jb25fbG5nLFxuICAgICAgICAgcGVyX2Nvbl9kaW1faW5jID0gcGVyX2Nvbl9pbmMgKyBwZXJfY29uX2VtcCArIHBlcl9jb25faGNvc3QsXG4gICAgICAgICBwZXJfY29uX2RpbV9obHRoID0gcGVyX2Nvbl9obHRoICsgcGVyX2Nvbl9kaXMgKyBwZXJfY29uX2Nyb3dkKVxuYGBgIn0= -->
-<pre class="r"><code>ky_df &lt;- full_join(ky_df, cen_hc, by = c(&quot;PUMA&quot;))
-ky_df &lt;- ky_df %&gt;%
-  mutate(per_con_inc = (cen_inc/adj_hc) * (1/9),
-         per_con_emp = (cen_emp/adj_hc) * (1/9),
-         per_con_hlth = (cen_health/adj_hc) * (1/9),
-         per_con_dis = (cen_disability/adj_hc) * (1/9),
-         per_con_edu = (cen_edu/adj_hc) * (1/9),
-         per_con_crowd = (cen_crowd/adj_hc) * (1/9),
-         per_con_hcost = (cen_house / adj_hc) * (1/9),
-         per_con_int = (cen_int / adj_hc) * (1/9),
-         per_con_lng = (cen_lng / adj_hc) * (1/9), 
-         per_con_dim_edu = per_con_edu + per_con_int + per_con_lng,
-         per_con_dim_inc = per_con_inc + per_con_emp + per_con_hcost,
-         per_con_dim_hlth = per_con_hlth + per_con_dis + per_con_crowd)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<div id="joining-vars-to-shapefile" class="section level2">
-<h2>joining vars to shapefile</h2>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfc2hwQGRhdGEkUFVNQSA8LSBhcy5udW1lcmljKGFzLmNoYXJhY3RlcihreV9zaHBAZGF0YSRQVU1BQ0UxMCkpXG5reV9zaHBAZGF0YSA8LSBmdWxsX2pvaW4oa3lfc2hwQGRhdGEsIGt5X2RmLCBieSA9IFwiUFVNQVwiKVxuYGBgIn0= -->
-<pre class="r"><code>ky_shp@data$PUMA &lt;- as.numeric(as.character(ky_shp@data$PUMACE10))
-ky_shp@data &lt;- full_join(ky_shp@data, ky_df, by = &quot;PUMA&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfc2hwQGRhdGEkYWRqX2hjIDwtIGt5X3NocEBkYXRhJGFkal9oYyAqIDEwMFxuYGBgIn0= -->
-<pre class="r"><code>ky_shp@data$adj_hc &lt;- ky_shp@data$adj_hc * 100</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfc2hwQGRhdGEkcGVyX2Nvbl9oY29zdCA8LSBreV9zaHBAZGF0YSRwZXJfY29uX2hjb3N0ICogMTAwXG5reV9zaHBAZGF0YSRwZXJfY29uX2ludCA8LSBreV9zaHBAZGF0YSRwZXJfY29uX2ludCAqIDEwMFxuYGBgIn0= -->
-<pre class="r"><code>ky_shp@data$per_con_hcost &lt;- ky_shp@data$per_con_hcost * 100
-ky_shp@data$per_con_int &lt;- ky_shp@data$per_con_int * 100</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfOF9reV9tYXAucG5nXCIsIGhlaWdodCA9IDI1MCwgd2lkdGggPSA1NTApXG50bV9zaGFwZShreV9zaHApICtcbiAgdG1fcG9seWdvbnMoXCJhZGpfaGNcIiwgc3R5bGU9XCJxdWFudGlsZVwiLCB0aXRsZT1cIkZpZ3VyZSA1LjggQWRqdXN0ZWQgSGVhZGNvdW50XCIsIHBhbGV0dGUgPSBcIkJsdWVzXCIpXG5kZXYub2ZmKClcbmBgYCJ9 -->
-<pre class="r"><code>png(&quot;fig_5_8_ky_map.png&quot;, height = 250, width = 550)
-tm_shape(ky_shp) +
-  tm_polygons(&quot;adj_hc&quot;, style=&quot;quantile&quot;, title=&quot;Figure 5.8 Adjusted Headcount&quot;, palette = &quot;Blues&quot;)
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfMTBfa3lfcGVyX2Nvbl9ob3VzZS5wbmdcIiwgaGVpZ2h0ID0gMjUwLCB3aWR0aCA9IDU1MClcbmBgYCJ9 -->
-<pre class="r"><code>png(&quot;fig_5_10_ky_per_con_house.png&quot;, height = 250, width = 550)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1fc2hhcGUoa3lfc2hwKSArXG4gIHRtX3BvbHlnb25zKFwicGVyX2Nvbl9oY29zdFwiLCBzdHlsZT1cInF1YW50aWxlXCIsIHRpdGxlPVwiRmlndXJlIDUuMTAgSG91c2luZyBDb3N0IFBlcmNlbnQgQ29udHJpYnV0aW9uXCIsIHBhbGV0dGUgPSBcIkJsdWVzXCIpXG5kZXYub2ZmKClcbmBgYCJ9 -->
-<pre class="r"><code>tm_shape(ky_shp) +
-  tm_polygons(&quot;per_con_hcost&quot;, style=&quot;quantile&quot;, title=&quot;Figure 5.10 Housing Cost Percent Contribution&quot;, palette = &quot;Blues&quot;)
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfOV9reV9wZXJfY29uX2ludC5wbmdcIiwgaGVpZ2h0ID0gMjUwLCB3aWR0aCA9IDU1MClcbmBgYCJ9 -->
-<pre class="r"><code>png(&quot;fig_5_9_ky_per_con_int.png&quot;, height = 250, width = 550)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1fc2hhcGUoa3lfc2hwKSArXG4gIHRtX3BvbHlnb25zKFwicGVyX2Nvbl9pbnRcIiwgc3R5bGU9XCJxdWFudGlsZVwiLCB0aXRsZT1cIkZpZ3VyZSA1LjkgSW50ZXJuZXQgQWNjZXNzIFBlcmNlbnQgQ29udHJpYnV0aW9uXCIsIHBhbGV0dGUgPSBcIkJsdWVzXCIpXG5kZXYub2ZmKClcbmBgYCJ9 -->
-<pre class="r"><code>tm_shape(ky_shp) +
-  tm_polygons(&quot;per_con_int&quot;, style=&quot;quantile&quot;, title=&quot;Figure 5.9 Internet Access Percent Contribution&quot;, palette = &quot;Blues&quot;)
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-</div>
-<div id="per-con-in-ky-over-time" class="section level2">
-<h2>Per con in KY over time</h2>
-<ul>
-<li>use facet_wrap?</li>
-</ul>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxua3lfcGVyX2Nvbl9kZiA8LSBzdGF0ZV9kZiAlPiUgXG4gIGZpbHRlcihTVEFURUZJUCA9PSAyMSkgJT4lXG4gIGRwbHlyOjpzZWxlY3QoWUVBUiwgJ0Fkai4gSGVhZGNvdW50JyA9IGFkal9oYywgSGVhZGNvdW50ID0gaGVhZGNvdW50LCBJbnRlbnNpdHkgPSBpbnRlbnNpdHksIEluY29tZSA9IHBlcl9jb25faW5jLCBFbXBsb3ltZW50ID0gcGVyX2Nvbl9lbXAsICdIZWFsdGggSW5zdXJhbmNlJyA9IHBlcl9jb25faGx0aCwgRGlzYWJpbGl0eSA9IHBlcl9jb25fZGlzLCAnSFMgRGVncmVlJyA9IHBlcl9jb25fZWR1LCBPdmVyY3Jvd2RpbmcgPSBwZXJfY29uX2Nyb3dkLCAnSG91c2luZyBDb3N0JyA9IHBlcl9jb25faGNvc3QsIEludGVybmV0ID0gcGVyX2Nvbl9pbnQsIExhbmd1YWdlID0gcGVyX2Nvbl9sbmcpICU+JVxuICBnYXRoZXIoa2V5ID0gXCJJbmRpY2F0b3JcIiwgdmFsdWUgPSBcImRlY19wZXJjZW50XCIsIC1ZRUFSKSAlPiVcbiAgbXV0YXRlKFBlcmNlbnQgPSBkZWNfcGVyY2VudCAqIDEwMClcbmt5X3Blcl9jb25fZGYkSW5kaWNhdG9yIDwtIGZhY3RvcihreV9wZXJfY29uX2RmJEluZGljYXRvciwgbGV2ZWxzID0gYyhcIkFkai4gSGVhZGNvdW50XCIsIFwiSGVhbHRoIEluc3VyYW5jZVwiLCBcIkhTIERlZ3JlZVwiLCBcIkluY29tZVwiLCBcIkhlYWRjb3VudFwiLCBcIkRpc2FiaWxpdHlcIiwgXCJJbnRlcm5ldFwiLCBcIkVtcGxveW1lbnRcIiwgXCJJbnRlbnNpdHlcIiwgXCJPdmVyY3Jvd2RpbmdcIiwgXCJMYW5ndWFnZVwiLCBcIkhvdXNpbmcgQ29zdFwiKSlcbmBgYCJ9 -->
-<pre class="r"><code>ky_per_con_df &lt;- state_df %&gt;% 
-  filter(STATEFIP == 21) %&gt;%
-  dplyr::select(YEAR, 'Adj. Headcount' = adj_hc, Headcount = headcount, Intensity = intensity, Income = per_con_inc, Employment = per_con_emp, 'Health Insurance' = per_con_hlth, Disability = per_con_dis, 'HS Degree' = per_con_edu, Overcrowding = per_con_crowd, 'Housing Cost' = per_con_hcost, Internet = per_con_int, Language = per_con_lng) %&gt;%
-  gather(key = &quot;Indicator&quot;, value = &quot;dec_percent&quot;, -YEAR) %&gt;%
-  mutate(Percent = dec_percent * 100)
-ky_per_con_df$Indicator &lt;- factor(ky_per_con_df$Indicator, levels = c(&quot;Adj. Headcount&quot;, &quot;Health Insurance&quot;, &quot;HS Degree&quot;, &quot;Income&quot;, &quot;Headcount&quot;, &quot;Disability&quot;, &quot;Internet&quot;, &quot;Employment&quot;, &quot;Intensity&quot;, &quot;Overcrowding&quot;, &quot;Language&quot;, &quot;Housing Cost&quot;))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucG5nKFwiZmlnXzVfN19wZXJfY29uX2t5X3RpbWUucG5nXCIsIHdpZHRoID0gNjAwLCBoZWlnaHQgPSA0MDApXG5nZ3Bsb3Qoa3lfcGVyX2Nvbl9kZiwgYWVzKHggPSBZRUFSLCB5ID0gUGVyY2VudCkpICsgZ2VvbV9saW5lKCkgKyBmYWNldF93cmFwKH5JbmRpY2F0b3IpICsgXG4gIGxhYnModGl0bGUgPSBcIkZpZ3VyZSA1LjcgUGVyY2VudCBDb250cmlidXRpb24gb2YgSW5kaWNhdG9ycyBpbiBLZW50dWNreVwiLCB4ID0gXCJZZWFyXCIsIHkgPSBcIlBlcmNlbnRcIikgKyB0aGVtZV9idygpXG5kZXYub2ZmKClcbmBgYCJ9 -->
-<pre class="r"><code>png(&quot;fig_5_7_per_con_ky_time.png&quot;, width = 600, height = 400)
-ggplot(ky_per_con_df, aes(x = YEAR, y = Percent)) + geom_line() + facet_wrap(~Indicator) + 
-  labs(title = &quot;Figure 5.7 Percent Contribution of Indicators in Kentucky&quot;, x = &quot;Year&quot;, y = &quot;Percent&quot;) + theme_bw()
-dev.off()</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoibnVsbCBkZXZpY2UgXG4gICAgICAgICAgMSBcbiJ9 -->
-<pre><code>null device 
-          1 </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>correlation coefficient between starting at high poverty levels and reducing poverty</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGZfMTMgPC0gc3RhdGVfZGYgJT4lIGZpbHRlcihZRUFSID09IDIwMTMpICU+JSBhcnJhbmdlKFNUQVRFRklQKVxuZGZfMTYgPC0gc3RhdGVfZGYgJT4lIGZpbHRlcihZRUFSID09IDIwMTYpICU+JSBhcnJhbmdlKFNUQVRFRklQKVxuc3RhcnRfdmFsdWUgPC0gZGZfMTMkYWRqX2hjXG5wZXJfY2hhbmdlIDwtIChkZl8xNiRhZGpfaGMgLSBkZl8xMyRhZGpfaGMpLyBkZl8xMyRhZGpfaGNcbmNvci50ZXN0KHN0YXJ0X3ZhbHVlLCBwZXJfY2hhbmdlKVxuYGBgIn0= -->
-<pre class="r"><code>df_13 &lt;- state_df %&gt;% filter(YEAR == 2013) %&gt;% arrange(STATEFIP)
-df_16 &lt;- state_df %&gt;% filter(YEAR == 2016) %&gt;% arrange(STATEFIP)
-start_value &lt;- df_13$adj_hc
-per_change &lt;- (df_16$adj_hc - df_13$adj_hc)/ df_13$adj_hc
-cor.test(start_value, per_change)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5cdFBlYXJzb24ncyBwcm9kdWN0LW1vbWVudCBjb3JyZWxhdGlvblxuXG5kYXRhOiAgc3RhcnRfdmFsdWUgYW5kIHBlcl9jaGFuZ2VcbnQgPSAtMi4xNjk2LCBkZiA9IDQ5LCBwLXZhbHVlID0gMC4wMzQ5MlxuYWx0ZXJuYXRpdmUgaHlwb3RoZXNpczogdHJ1ZSBjb3JyZWxhdGlvbiBpcyBub3QgZXF1YWwgdG8gMFxuOTUgcGVyY2VudCBjb25maWRlbmNlIGludGVydmFsOlxuIC0wLjUyODUxMDk2IC0wLjAyMjI4MDE4XG5zYW1wbGUgZXN0aW1hdGVzOlxuICAgICAgIGNvciBcbi0wLjI5NjA0NjEgXG4ifQ== -->
-<pre><code>
-    Pearson's product-moment correlation
+<!-- rnb-html-end -->
 
-data:  start_value and per_change
-t = -2.1696, df = 49, p-value = 0.03492
-alternative hypothesis: true correlation is not equal to 0
-95 percent confidence interval:
- -0.52851096 -0.02228018
-sample estimates:
-       cor 
--0.2960461 </code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
-</div>
-</div>
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW9kMyA8LSBsbShpbmNvbWVfcG92ZXJ0eSB+IHNleCtyYWNlK21ldHJvK0FHRSthZ2Vfc3Erc3RhdGUreWVhciwgd2VpZ2h0cyA9IFBFUldULCBkYXRhID0gZGZfc2FtcGxlKVxubW9kMyRuZXdzZSA8LSB2Y292SEMobW9kMywgdHlwZT1cIkhDM1wiKVxubW9kMy5kaXNwbGF5IDwtIGNvZWZ0ZXN0KG1vZDMsIG1vZDMkbmV3c2UpXG50aWR5X291dHB1dCA8LSBicm9vbTo6dGlkeShtb2QzLmRpc3BsYXkpXG50aWR5X291dHB1dFssMjo1XSA8LSByb3VuZCh0aWR5X291dHB1dFssMjo1XSwgMylcbnRpZHlfb3V0cHV0IDwtIGtuaXRyOjprYWJsZSh0aWR5X291dHB1dCwgXCJodG1sXCIpXG50aWR5X291dHB1dFxuYGBgIn0= -->
+<pre class="r"><code>mod3 &lt;- lm(income_poverty ~ sex+race+metro+AGE+age_sq+state+year, weights = PERWT, data = df_sample)
+mod3$newse &lt;- vcovHC(mod3, type=&quot;HC3&quot;)
+mod3.display &lt;- coeftest(mod3, mod3$newse)
+tidy_output &lt;- broom::tidy(mod3.display)
+tidy_output[,2:5] &lt;- round(tidy_output[,2:5], 3)
+tidy_output &lt;- knitr::kable(tidy_output, &quot;html&quot;)
+tidy_output</code></pre>
+<!-- rnb-source-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeShnZW9mYWNldCkNCmxpYnJhcnkoZ2d0aGVtZXMpDQpsaWJyYXJ5KHJnZGFsKQ0KbGlicmFyeShjaG9yb3BsZXRocikNCmxpYnJhcnkodG1hcCkNCmxpYnJhcnkoZmVhdGhlcikNCmxpYnJhcnkoc3VydmV5KQ0KYGBgDQoNCmBgYHtyfQ0Kc3RhdGVfZGYgPC0gcmVhZF9jc3YoInN0YXRlX3llYXJfbXBpLmNzdiIpDQpgYGANCg0KYGBge3J9DQpzdGF0ZV9maXBzIDwtIHJlYWRfY3N2KCJDOi9Vc2Vycy9uYXRlay9Hb29nbGUgRHJpdmUvRGlzc2VydGF0aW9uL3N0YXRlIG5hbWVzIGFuZCBtZWRpY2FpZC5jc3YiKQ0KYGBgDQoNCmBgYHtyfQ0Kc3RhdGVfZGYgPC0gbGVmdF9qb2luKHN0YXRlX2RmLCBzdGF0ZV9maXBzLCBieSA9ICJTVEFURUZJUCIpDQpgYGANCg0KYGBge3J9DQpzdGF0ZV9tZCA8LSBzdGF0ZV9kZiAlPiUNCiAgZ3JvdXBfYnkoWUVBUiwgTWVkaWNhaWRfRXhwYW5zaW9uKSAlPiUNCiAgc3VtbWFyaXplKGFkal9oYyA9IG1lYW4oYWRqX2hjKSwNCiAgICAgICAgICAgIHBlcl9jb25faGx0aCA9IG1lYW4ocGVyX2Nvbl9obHRoKSkNCg0Kc3RhdGVfbWQkTWVkaWNhaWRfRXhwYW5zaW9uIDwtIGFzLmZhY3RvcihzdGF0ZV9tZCRNZWRpY2FpZF9FeHBhbnNpb24pDQpwbmcoImZpZ181XzZfcGVyX2Nvbl9obHRoX21lZGljYWlkLnBuZyIsIHdpZHRoID0gNjAwLCBoZWlnaHQgPSA0MDApDQpnZ3Bsb3QoZGF0YSA9IHN0YXRlX21kLCBhZXMoWUVBUiwgcGVyX2Nvbl9obHRoICogMTAwLCBncm91cCA9IE1lZGljYWlkX0V4cGFuc2lvbiwgbGluZXR5cGUgPSBNZWRpY2FpZF9FeHBhbnNpb24pKSArIGdlb21fbGluZSgpICsgbGFicyh0aXRsZSA9ICJGaWd1cmUgNS42IFBlcmNlbnQgQ29udHJpYnV0aW9uIG9mIEhlYWx0aCBJbnN1cmFuY2Ugb3ZlciB0aW1lIiwgeCA9ICJZZWFyIiwgeSA9ICJQZXJjZW50IENvbnRyaWJ1dGlvbiBvZiBIZWFsdGggSW5zdXJhbmNlIikgKyB0aGVtZV90dWZ0ZSgpICsgc2NhbGVfbGluZXR5cGVfZGlzY3JldGUobmFtZSA9ICJNZWRpY2FpZFxuRXhwYW5zaW9uIiwgYnJlYWtzID0gYygiMSIsICIwIiksIGxhYmVscyA9IGMoIlllcyIsICJObyIpKQ0KZGV2Lm9mZigpDQpgYGANCg0KYGBge3IsIGV2YWwgPSBGQUxTRX0NCnN0YXRlX2RmJE1lZGljYWlkX0V4cGFuc2lvbiA8LSBhcy5mYWN0b3Ioc3RhdGVfZGYkTWVkaWNhaWRfRXhwYW5zaW9uKQ0Kc3RhdGVfZGYxMzE1IDwtIHN0YXRlX2RmICU+JSBmaWx0ZXIoWUVBUiAhPSAyMDE2KQ0KZGRyZWcxIDwtIGxtKGFkal9oY35ZRUFSKk1lZGljYWlkX0V4cGFuc2lvbiwgZGF0YSA9IHN0YXRlX2RmMTMxNSkNCnN1bW1hcnkoZGRyZWcxKQ0KZGRyZWcyIDwtIGxtKHBlcl9jb25faGx0aH5ZRUFSKk1lZGljYWlkX0V4cGFuc2lvbiwgZGF0YSA9IHN0YXRlX2RmMTMxNSkNCnN1bW1hcnkoZGRyZWcyKQ0KYGBgDQoNCg0KDQpgYGB7cn0NCnBuZygiZmlnXzVfM19zdGF0ZV9tcGlfdGltZS5wbmciLCBoZWlnaHQgPSA0MDAsIHdpZHRoID0gNjAwKQ0KZ2dwbG90KHN0YXRlX2RmLCBhZXMoWUVBUiwgYWRqX2hjICoxMDApKSArDQogIGdlb21fbGluZSgpICsNCiAgc2NhbGVfeF9jb250aW51b3VzKGxhYmVscyA9IGZ1bmN0aW9uKHgpIHBhc3RlMCgiJyIsIHN1YnN0cih4LCAzLCA0KSkpICsNCiAgc2NhbGVfeV9jb250aW51b3VzKGJyZWFrcyA9IGMoNCwgNywgMTApKSArDQogICN0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X2JsYW5rKCksIGF4aXMudGlja3MgPSBlbGVtZW50X2JsYW5rKCkpICsNCiAgZmFjZXRfZ2VvKH5zdF9hYnIpICsNCiAgbGFicyh0aXRsZSA9ICJGaWd1cmUgNS4zIE11bHRpZGltZW5zaW9uYWwgUG92ZXJ0eSBpbiBVLlMuIHN0YXRlcyBmcm9tIDIwMTMgdG8gMjAxNiIsIHggPSAiWWVhciIsIHkgPSAiQWRqdXN0ZWQgSGVhZGNvdW50IiwNCiAgICAgICBjYXB0aW9uID0gIlNvdXJjZTogQXV0aG9yJ3MgYW5hbHlzaXMgb2YgQW1lcmljYW4gQ29tbXVuaXR5IFN1cnZleSBkYXRhIHZpYSBJUFVNUyIpDQpkZXYub2ZmKCkNCmBgYA0KDQojIFBlcmNlbnQgY29udHJpYnV0aW9uIG9mIGhlYWx0aCBpbnN1cmFuY2UNCmBgYHtyfQ0KcG5nKCJmaWdfNV81X3Blcl9jb25faGx0aF9tZWRpY2FpZF9zdGF0ZS5wbmciLCBoZWlnaHQgPSA0MDAsIHdpZHRoID0gNjAwKQ0KZ2dwbG90KHN0YXRlX2RmLCBhZXMoWUVBUiwgcGVyX2Nvbl9obHRoICoxMDAsIGxpbmV0eXBlID0gYXMuZmFjdG9yKE1lZGljYWlkX0V4cGFuc2lvbikpKSArDQogIGdlb21fbGluZSgpICsgZ3VpZGVzKGxpbmV0eXBlID0gRkFMU0UpICsNCiAgc2NhbGVfeF9jb250aW51b3VzKGxhYmVscyA9IGZ1bmN0aW9uKHgpIHBhc3RlMCgiJyIsIHN1YnN0cih4LCAzLCA0KSkpICsNCiAgI3NjYWxlX3lfY29udGludW91cyhicmVha3MgPSBjKDQsIDcsIDEwKSkgKw0KICAjdGhlbWUoYXhpcy50ZXh0ID0gZWxlbWVudF9ibGFuaygpLCBheGlzLnRpY2tzID0gZWxlbWVudF9ibGFuaygpKSArDQogIGZhY2V0X2dlbyh+c3RfYWJyKSArDQogIGxhYnModGl0bGUgPSAiRmlndXJlIDUuNSBQZXJjZW50IENvbnRyaWJ1dGlvbiBvZiBIZWFsdGggSW5zdXJhbmNlIHRvIE1QSSBpbiBVLlMuIHN0YXRlcyBmcm9tIDIwMTMgdG8gMjAxNiIsIHggPSAiWWVhciIsIHkgPSAiUGVyY2VudCIsDQogICAgICAgY2FwdGlvbiA9ICJEYXNoZWQgbGluZXMgcmVwcmVzZW50IHN0YXRlcyB0aGF0IGV4cGFuZGVkIE1lZGljYWlkIFxuU291cmNlOiBBdXRob3IncyBhbmFseXNpcyBvZiBBbWVyaWNhbiBDb21tdW5pdHkgU3VydmV5IGRhdGEgdmlhIElQVU1TIikNCmRldi5vZmYoKQ0KYGBgDQoNCg0KIyBzdGF0ZSBiYXIgY2hhcnQNCmBgYHtyfQ0KYnBsb3RfZGYgPC0gc3RhdGVfZGYgJT4lDQogIGZpbHRlcihZRUFSID09IDIwMTYpICU+JQ0KICBzZWxlY3Qoc3RfYWJyLCBwZXJfY29uX2RpbV9lZHUsIHBlcl9jb25fZGltX2hsdGgsIHBlcl9jb25fZGltX2luYykgJT4lDQogIG11dGF0ZShIZWFsdGggPSBwZXJfY29uX2RpbV9obHRoICogMTAwLCBFZHVjYXRpb24gPSBwZXJfY29uX2RpbV9lZHUqMTAwLCBFY29ub21pYyA9IHBlcl9jb25fZGltX2luYyAqIDEwMCkgJT4lDQogIGdhdGhlcihrZXkgPSAiRGltZW5zaW9uIiwgdmFsdWUgPSAidmFsdWUiLCBIZWFsdGgsIEVkdWNhdGlvbiwgRWNvbm9taWMpDQoNCnBuZygiZmlnXzVfNF9wZXJfY29uX3N0YXRlX2Jhcl9jaGFydC5wbmciLCBoZWlnaHQgPSA0MDAsIHdpZHRoID0gNjAwKQ0KZ2dwbG90KGJwbG90X2RmLCBhZXMoRGltZW5zaW9uLCB2YWx1ZSwgZmlsbCA9IERpbWVuc2lvbikpICsNCiAgZ3VpZGVzKGZpbGwgPSBGQUxTRSkgKw0KICBnZW9tX2NvbCgpICsNCiAgY29vcmRfZmxpcCgpICsgDQogIGZhY2V0X2dlbyh+c3RfYWJyKSArDQogIGxhYnModGl0bGUgPSAiRmlndXJlIDUuNCBQZXJjZW50IENvbnRyaWJ1dGlvbiBieSBEaW1lbnNpb24sIDIwMTYiLCB4ID0gIkRpbWVuc2lvbiIsIHkgPSAiUGVyY2VudCBDb250cmlidXRpb24iLA0KICAgICAgIGNhcHRpb24gPSAiU291cmNlOiBBdXRob3IncyBhbmFseXNpcyBvZiBBbWVyaWNhbiBDb21tdW5pdHkgU3VydmV5IGRhdGEgdmlhIElQVU1TIikNCmRldi5vZmYoKQ0KYGBgDQoNCg0KDQojIGNob3JvcGxldGhyIG1hcA0KYGBge3J9DQoNCnJlZ2lvbiA8LSB0b2xvd2VyKHN0YXRlX2RmJFN0YXRlW3N0YXRlX2RmJFlFQVIgPT0gMjAxNl0pDQp2YWx1ZSA8LSBzdGF0ZV9kZiRhZGpfaGNbc3RhdGVfZGYkWUVBUiA9PSAyMDE2XQ0KdmFsdWUgPC0gcm91bmQodmFsdWUgKiAxMDAsIDEpDQpwbHRfbWFwX2RmIDwtIGRhdGEuZnJhbWUocmVnaW9uLCB2YWx1ZSkNCg0KcG5nKCJmaWdfNV8xX3N0YXRlX2Nob3JvLnBuZyIsIHdpZHRoID0gNjAwLCBoZWlnaHQgPSAzNTApDQpzdGF0ZV9jaG9yb3BsZXRoKHBsdF9tYXBfZGYpICsgbGFicyh0aXRsZSA9ICJGaWd1cmUgNS4xIEFkanVzdGVkIEhlYWRjb3VudCwgMjAxNiIpICsgdGhlbWUocGxvdC50aXRsZSA9IGVsZW1lbnRfdGV4dChoanVzdCA9IDAuNSkpDQpkZXYub2ZmKCkNCmBgYA0KDQojY2FsY3VsYXRlIGNvcnJlbGF0aW9uIGNvZWZmaWNpZW50IGZvciBzdGF0ZSBpbmNvbWUgcG92ZXJ0eS4gDQpgYGB7cn0NCnN0YXRlX2RmXzE2IDwtIHN0YXRlX2RmICU+JSBmaWx0ZXIoWUVBUiA9PSAyMDE2KQ0KY29yKHN0YXRlX2RmJGFkal9oYywgc3RhdGVfZGYkaW5jX2luYykNCnN0YXRlX2RmXzE2IDwtIHN0YXRlX2RmXzE2ICU+JSBhcnJhbmdlKGFkal9oYykNCmBgYA0KDQojUGxvdCBvZiBpbmNvbWUgcG92ZXJ0eSB2LiBtcGkgcG92ZXJ0eQ0KYGBge3J9DQpwbmcoImZpZ181XzJfc3RhdGVfaW5jX21waV9zY2F0dGVyLnBuZyIpDQpnZ3Bsb3Qoc3RhdGVfZGZfMTYsIGFlcyh4ID0gaW5jX2luYyoxMDAsIHkgPSBhZGpfaGMgKiAxMDApKSArIGdlb21fbGFiZWwoYWVzKGxhYmVsID0gc3RfYWJyKSkrIGdlb21fc21vb3RoKG1ldGhvZCA9ICJsbSIsIHNlID0gRkFMU0UpICsgbGFicyh0aXRsZSA9ICJGaWd1cmUgNS4yIEluY29tZSBQb3ZlcnR5IGFuZCBBZGp1c3RlZCBIZWFkY291bnQsIDIwMTYgIiwgeSA9ICJBZGp1c3RlZCBIZWFkY291bnQiLCB4ID0gIkluY29tZSBQb3ZlcnR5IikgKyB0aGVtZV90dWZ0ZSgpDQpgYGANCg0KIyMgS2VudHVja3kgYW5hbHlzaXMNCg0KYGBge3J9DQpreV9zaHAgPC0gcmVhZE9HUigiQzovVXNlcnMvbmF0ZWsvR29vZ2xlIERyaXZlL0Rpc3NlcnRhdGlvbi9jYl8yMDE2XzIxX3B1bWExMF81MDBrIiwgbGF5ZXIgPSAiY2JfMjAxNl8yMV9wdW1hMTBfNTAwayIsIEdEQUwxX2ludGVnZXI2NF9wb2xpY3kgPSBUUlVFKSANCiNwbG90KGt5X3NocCkNCmBgYA0KDQpgYGB7cn0NCmRmIDwtIHJlYWRfZmVhdGhlcigiQzovVXNlcnMvbmF0ZWsvRG9jdW1lbnRzL21waV9leHBfZGYuZmVhdGhlciIpDQpkZl9reV8xNiA8LSBkZiAlPiUgZmlsdGVyKFNUQVRFRklQID09IDIxICYgWUVBUiA9PSAyMDE2KQ0KYGBgDQoNCmBgYHtyfQ0KZGZfa3lfMTYkbXBpX3Njb3JlID0gZGZfa3lfMTYkaW5jb21lX3BvdmVydHkqKDEvOSkgKyANCiAgZGZfa3lfMTYkZmFtX2VtcCAqKDEvOSkgKyANCiAgZGZfa3lfMTYkaGVhbHRoKigxLzkpICsgDQogIGRmX2t5XzE2JGVkdWNhdGlvbiooMS85KSArDQogIGRmX2t5XzE2JG92ZXJjcm93ZCooMS85KSArDQogIGRmX2t5XzE2JGNvbXB1dGVyX2ludGVybmV0KigxLzkpICsgDQogIGRmX2t5XzE2JGRpc2FiaWxpdHkqKDEvOSkgKw0KICBkZl9reV8xNiRsYW5nX2RlcCAqICgxLzkpICsNCiAgZGZfa3lfMTYkaGNvc3RfZGVwICogKDEvOSkNCg0KZGZfa3lfMTYkbXBpX3Bvb3IgPSBpZl9lbHNlKGRmX2t5XzE2JG1waV9zY29yZSA+IC4zMiwgMSwgMCkNCmBgYA0KDQoNCmBgYHtyfQ0Ka3lfc3Z5IDwtIHN2eWRlc2lnbihpZHMgPSB+MSwgd2VpZ2h0cyA9IH5QRVJXVCwgZGF0YSA9IGRmX2t5XzE2KQ0Ka3lfMTZfbWVhbiA8LSBzdnlieSh+bXBpX3Bvb3IgKyBpbmNvbWVfcG92ZXJ0eStmYW1fZW1wK2hlYWx0aCtkaXNhYmlsaXR5K2VkdWNhdGlvbiArIG92ZXJjcm93ZCtoY29zdF9kZXArY29tcHV0ZXJfaW50ZXJuZXQrbGFuZ19kZXAsIH5QVU1BLCBkZXNpZ24gPSBreV9zdnksIHN2eW1lYW4pDQpgYGANCg0KDQojIEludGVuc2l0eSBvZiBkZXByaXZhdGlvbiBhbW9uZyBvbmx5IHRoZSBNUEkgcG9vcg0KYGBge3J9DQpreV9zdnlfcCA8LSBzdWJzZXQoa3lfc3Z5LCBtcGlfcG9vciA9PSAxKQ0Ka3lfMTZfaW50ZW5zaXR5IDwtIHN2eWJ5KH5tcGlfc2NvcmUsIH5QVU1BLCBkZXNpZ24gPSBreV9zdnlfcCwgc3Z5bWVhbikNCmBgYA0KDQpgYGB7cn0NCmt5XzE2X21lYW4gPC0ga3lfMTZfbWVhbiAlPiUgcmVuYW1lKGhlYWRjb3VudCA9IG1waV9wb29yLCBpbmNfaW5jID0gaW5jb21lX3BvdmVydHksIGluY19lbXAgPSBmYW1fZW1wLCBpbmNfaGVhbHRoID0gaGVhbHRoLCBpbmNfZGlzID0gZGlzYWJpbGl0eSwgaW5jX2VkdSA9IGVkdWNhdGlvbiwgaW5jX2Nyb3dkID0gb3ZlcmNyb3dkLCBpbmNfaG91c2UgPSBoY29zdF9kZXAsIGluY19pbnQgPSBjb21wdXRlcl9pbnRlcm5ldCwgaW5jX2xuZyA9IGxhbmdfZGVwLCBzZV9oZWFkY291bnQgPSBzZS5tcGlfcG9vciwgc2VfaW5jX2luYyA9IHNlLmluY29tZV9wb3ZlcnR5LCBzZV9pbmNfZW1wID0gc2UuZmFtX2VtcCwgc2VfaW5jX2hlYWx0aCA9IHNlLmhlYWx0aCwgc2VfaW5jX2RpcyA9IHNlLmRpc2FiaWxpdHksIHNlX2luY19lZHUgPSBzZS5lZHVjYXRpb24sIHNlX2luY19jcm93ZCA9IHNlLm92ZXJjcm93ZCwgc2VfaW5jX2hvdXNlID0gc2UuaGNvc3RfZGVwLCBzZV9pbmNfaW50ID0gc2UuY29tcHV0ZXJfaW50ZXJuZXQsIHNlX2luY19sbmcgPSBzZS5sYW5nX2RlcCkNCg0Ka3lfMTZfaW50ZW5zaXR5IDwtIGt5XzE2X2ludGVuc2l0eSAlPiUgcmVuYW1lKGludGVuc2l0eSA9IG1waV9zY29yZSwgaW50X3NlID0gc2UpDQoNCmt5X2RmIDwtIGZ1bGxfam9pbihreV8xNl9tZWFuLCBreV8xNl9pbnRlbnNpdHksIGJ5ID0gYygiUFVNQSIpKQ0KDQpreV9kZiRhZGpfaGMgPC0ga3lfZGYkaGVhZGNvdW50ICoga3lfZGYkaW50ZW5zaXR5DQoNCmBgYA0KDQpDZW5zb3JlZCBkYXRhDQpgYGB7cn0NCmNlbl9kZiA8LSBkZl9reV8xNg0KY2VuX2RmW2Nlbl9kZiRtcGlfcG9vciA9PSAwLCAxMjoyMF0gPC0gMA0KY2VuX2RmIDwtIHN2eWRlc2lnbihpZHMgPSB+MSwgd2VpZ2h0cyA9IH5QRVJXVCwgZGF0YSA9IGNlbl9kZikNCmBgYA0KDQpgYGB7cn0NCmNlbl9oYyA8LSBzdnlieSh+aW5jb21lX3BvdmVydHkrZmFtX2VtcCtoZWFsdGgrZGlzYWJpbGl0eStlZHVjYXRpb24gKyBvdmVyY3Jvd2QraGNvc3RfZGVwK2NvbXB1dGVyX2ludGVybmV0K2xhbmdfZGVwLCB+UFVNQSwgZGVzaWduID0gY2VuX2RmLCBzdnltZWFuKQ0KYGBgDQoNCmBgYHtyfQ0KY2VuX2hjIDwtIGNlbl9oYyAlPiUNCiAgcmVuYW1lKGNlbl9pbmMgPSBpbmNvbWVfcG92ZXJ0eSwgY2VuX2VtcCA9IGZhbV9lbXAsIGNlbl9oZWFsdGggPSBoZWFsdGgsIGNlbl9kaXNhYmlsaXR5ID0gZGlzYWJpbGl0eSwgY2VuX2VkdSA9IGVkdWNhdGlvbiwgY2VuX2Nyb3dkID0gb3ZlcmNyb3dkLCBjZW5faG91c2UgPSBoY29zdF9kZXAsIGNlbl9pbnQgPSBjb21wdXRlcl9pbnRlcm5ldCwgY2VuX2xuZyA9IGxhbmdfZGVwLCBzZV9jZW5faW5jID0gc2UuaW5jb21lX3BvdmVydHksIHNlX2Nlbl9lbXAgPSBzZS5mYW1fZW1wLCBzZV9jZW5faGVhbHRoID0gc2UuaGVhbHRoLCBzZV9jZW5fZGlzYWJpbGl0eSA9IHNlLmRpc2FiaWxpdHksIHNlX2Nlbl9lZHUgPSBzZS5lZHVjYXRpb24sIHNlX2Nlbl9jcm93ZCA9IHNlLm92ZXJjcm93ZCwgc2VfY2VuX2hvdXNlID0gc2UuaGNvc3RfZGVwLCBzZV9jZW5faW50ID0gc2UuY29tcHV0ZXJfaW50ZXJuZXQsIHNlX2Nlbl9sbmcgPSBzZS5sYW5nX2RlcCkNCmBgYA0KDQoNCmBgYHtyfQ0Ka3lfZGYgPC0gZnVsbF9qb2luKGt5X2RmLCBjZW5faGMsIGJ5ID0gYygiUFVNQSIpKQ0Ka3lfZGYgPC0ga3lfZGYgJT4lDQogIG11dGF0ZShwZXJfY29uX2luYyA9IChjZW5faW5jL2Fkal9oYykgKiAoMS85KSwNCiAgICAgICAgIHBlcl9jb25fZW1wID0gKGNlbl9lbXAvYWRqX2hjKSAqICgxLzkpLA0KICAgICAgICAgcGVyX2Nvbl9obHRoID0gKGNlbl9oZWFsdGgvYWRqX2hjKSAqICgxLzkpLA0KICAgICAgICAgcGVyX2Nvbl9kaXMgPSAoY2VuX2Rpc2FiaWxpdHkvYWRqX2hjKSAqICgxLzkpLA0KICAgICAgICAgcGVyX2Nvbl9lZHUgPSAoY2VuX2VkdS9hZGpfaGMpICogKDEvOSksDQogICAgICAgICBwZXJfY29uX2Nyb3dkID0gKGNlbl9jcm93ZC9hZGpfaGMpICogKDEvOSksDQogICAgICAgICBwZXJfY29uX2hjb3N0ID0gKGNlbl9ob3VzZSAvIGFkal9oYykgKiAoMS85KSwNCiAgICAgICAgIHBlcl9jb25faW50ID0gKGNlbl9pbnQgLyBhZGpfaGMpICogKDEvOSksDQogICAgICAgICBwZXJfY29uX2xuZyA9IChjZW5fbG5nIC8gYWRqX2hjKSAqICgxLzkpLCANCiAgICAgICAgIHBlcl9jb25fZGltX2VkdSA9IHBlcl9jb25fZWR1ICsgcGVyX2Nvbl9pbnQgKyBwZXJfY29uX2xuZywNCiAgICAgICAgIHBlcl9jb25fZGltX2luYyA9IHBlcl9jb25faW5jICsgcGVyX2Nvbl9lbXAgKyBwZXJfY29uX2hjb3N0LA0KICAgICAgICAgcGVyX2Nvbl9kaW1faGx0aCA9IHBlcl9jb25faGx0aCArIHBlcl9jb25fZGlzICsgcGVyX2Nvbl9jcm93ZCkNCmBgYA0KDQojI2pvaW5pbmcgdmFycyB0byBzaGFwZWZpbGUNCg0KYGBge3J9DQpreV9zaHBAZGF0YSRQVU1BIDwtIGFzLm51bWVyaWMoYXMuY2hhcmFjdGVyKGt5X3NocEBkYXRhJFBVTUFDRTEwKSkNCmt5X3NocEBkYXRhIDwtIGZ1bGxfam9pbihreV9zaHBAZGF0YSwga3lfZGYsIGJ5ID0gIlBVTUEiKQ0KYGBgDQoNCmBgYHtyfQ0Ka3lfc2hwQGRhdGEkYWRqX2hjIDwtIGt5X3NocEBkYXRhJGFkal9oYyAqIDEwMA0KYGBgDQoNCmBgYHtyfQ0Ka3lfc2hwQGRhdGEkcGVyX2Nvbl9oY29zdCA8LSBreV9zaHBAZGF0YSRwZXJfY29uX2hjb3N0ICogMTAwDQpreV9zaHBAZGF0YSRwZXJfY29uX2ludCA8LSBreV9zaHBAZGF0YSRwZXJfY29uX2ludCAqIDEwMA0KDQpgYGANCg0KDQpgYGB7cn0NCnBuZygiZmlnXzVfOF9reV9tYXAucG5nIiwgaGVpZ2h0ID0gMjUwLCB3aWR0aCA9IDU1MCkNCnRtX3NoYXBlKGt5X3NocCkgKw0KICB0bV9wb2x5Z29ucygiYWRqX2hjIiwgc3R5bGU9InF1YW50aWxlIiwgdGl0bGU9IkZpZ3VyZSA1LjggQWRqdXN0ZWQgSGVhZGNvdW50IiwgcGFsZXR0ZSA9ICJCbHVlcyIpDQpkZXYub2ZmKCkNCnBuZygiZmlnXzVfMTBfa3lfcGVyX2Nvbl9ob3VzZS5wbmciLCBoZWlnaHQgPSAyNTAsIHdpZHRoID0gNTUwKQ0KdG1fc2hhcGUoa3lfc2hwKSArDQogIHRtX3BvbHlnb25zKCJwZXJfY29uX2hjb3N0Iiwgc3R5bGU9InF1YW50aWxlIiwgdGl0bGU9IkZpZ3VyZSA1LjEwIEhvdXNpbmcgQ29zdCBQZXJjZW50IENvbnRyaWJ1dGlvbiIsIHBhbGV0dGUgPSAiQmx1ZXMiKQ0KZGV2Lm9mZigpDQpwbmcoImZpZ181Xzlfa3lfcGVyX2Nvbl9pbnQucG5nIiwgaGVpZ2h0ID0gMjUwLCB3aWR0aCA9IDU1MCkNCnRtX3NoYXBlKGt5X3NocCkgKw0KICB0bV9wb2x5Z29ucygicGVyX2Nvbl9pbnQiLCBzdHlsZT0icXVhbnRpbGUiLCB0aXRsZT0iRmlndXJlIDUuOSBJbnRlcm5ldCBBY2Nlc3MgUGVyY2VudCBDb250cmlidXRpb24iLCBwYWxldHRlID0gIkJsdWVzIikNCmRldi5vZmYoKQ0KYGBgDQoNCiMjIFBlciBjb24gaW4gS1kgb3ZlciB0aW1lDQoNCi0gdXNlIGZhY2V0X3dyYXA/DQpgYGB7cn0NCmt5X3Blcl9jb25fZGYgPC0gc3RhdGVfZGYgJT4lIA0KICBmaWx0ZXIoU1RBVEVGSVAgPT0gMjEpICU+JQ0KICBkcGx5cjo6c2VsZWN0KFlFQVIsICdBZGouIEhlYWRjb3VudCcgPSBhZGpfaGMsIEhlYWRjb3VudCA9IGhlYWRjb3VudCwgSW50ZW5zaXR5ID0gaW50ZW5zaXR5LCBJbmNvbWUgPSBwZXJfY29uX2luYywgRW1wbG95bWVudCA9IHBlcl9jb25fZW1wLCAnSGVhbHRoIEluc3VyYW5jZScgPSBwZXJfY29uX2hsdGgsIERpc2FiaWxpdHkgPSBwZXJfY29uX2RpcywgJ0hTIERlZ3JlZScgPSBwZXJfY29uX2VkdSwgT3ZlcmNyb3dkaW5nID0gcGVyX2Nvbl9jcm93ZCwgJ0hvdXNpbmcgQ29zdCcgPSBwZXJfY29uX2hjb3N0LCBJbnRlcm5ldCA9IHBlcl9jb25faW50LCBMYW5ndWFnZSA9IHBlcl9jb25fbG5nKSAlPiUNCiAgZ2F0aGVyKGtleSA9ICJJbmRpY2F0b3IiLCB2YWx1ZSA9ICJkZWNfcGVyY2VudCIsIC1ZRUFSKSAlPiUNCiAgbXV0YXRlKFBlcmNlbnQgPSBkZWNfcGVyY2VudCAqIDEwMCkNCmt5X3Blcl9jb25fZGYkSW5kaWNhdG9yIDwtIGZhY3RvcihreV9wZXJfY29uX2RmJEluZGljYXRvciwgbGV2ZWxzID0gYygiQWRqLiBIZWFkY291bnQiLCAiSGVhbHRoIEluc3VyYW5jZSIsICJIUyBEZWdyZWUiLCAiSW5jb21lIiwgIkhlYWRjb3VudCIsICJEaXNhYmlsaXR5IiwgIkludGVybmV0IiwgIkVtcGxveW1lbnQiLCAiSW50ZW5zaXR5IiwgIk92ZXJjcm93ZGluZyIsICJMYW5ndWFnZSIsICJIb3VzaW5nIENvc3QiKSkNCmBgYA0KDQpgYGB7cn0NCnBuZygiZmlnXzVfN19wZXJfY29uX2t5X3RpbWUucG5nIiwgd2lkdGggPSA2MDAsIGhlaWdodCA9IDQwMCkNCmdncGxvdChreV9wZXJfY29uX2RmLCBhZXMoeCA9IFlFQVIsIHkgPSBQZXJjZW50KSkgKyBnZW9tX2xpbmUoKSArIGZhY2V0X3dyYXAofkluZGljYXRvcikgKyANCiAgbGFicyh0aXRsZSA9ICJGaWd1cmUgNS43IFBlcmNlbnQgQ29udHJpYnV0aW9uIG9mIEluZGljYXRvcnMgaW4gS2VudHVja3kiLCB4ID0gIlllYXIiLCB5ID0gIlBlcmNlbnQiKSArIHRoZW1lX2J3KCkNCmRldi5vZmYoKQ0KYGBgDQoNCmNvcnJlbGF0aW9uIGNvZWZmaWNpZW50IGJldHdlZW4gc3RhcnRpbmcgYXQgaGlnaCBwb3ZlcnR5IGxldmVscyBhbmQgcmVkdWNpbmcgcG92ZXJ0eQ0KYGBge3J9DQpkZl8xMyA8LSBzdGF0ZV9kZiAlPiUgZmlsdGVyKFlFQVIgPT0gMjAxMykgJT4lIGFycmFuZ2UoU1RBVEVGSVApDQpkZl8xNiA8LSBzdGF0ZV9kZiAlPiUgZmlsdGVyKFlFQVIgPT0gMjAxNikgJT4lIGFycmFuZ2UoU1RBVEVGSVApDQoNCnN0YXJ0X3ZhbHVlIDwtIGRmXzEzJGFkal9oYw0KcGVyX2NoYW5nZSA8LSAoZGZfMTYkYWRqX2hjIC0gZGZfMTMkYWRqX2hjKS8gZGZfMTMkYWRqX2hjDQoNCmNvci50ZXN0KHN0YXJ0X3ZhbHVlLCBwZXJfY2hhbmdlKQ0KDQpgYGANCg0K</div>
+<!-- rnb-html-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImtuaXRfYXNpcyJdLCJzaXppbmdQb2xpY3kiOltdfX0= -->
+
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.298
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+25.635
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+sex2
+</td>
+<td style="text-align:right;">
+0.025
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+28.652
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceAsian
+</td>
+<td style="text-align:right;">
+-0.043
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-3.958
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceBlack
+</td>
+<td style="text-align:right;">
+0.068
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+6.231
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceHispanic
+</td>
+<td style="text-align:right;">
+0.049
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+4.502
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceNative
+</td>
+<td style="text-align:right;">
+0.069
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+5.539
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceThree or more races
+</td>
+<td style="text-align:right;">
+-0.036
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:right;">
+-2.566
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceTwo races
+</td>
+<td style="text-align:right;">
+-0.010
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-0.850
+</td>
+<td style="text-align:right;">
+0.395
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+raceWhite
+</td>
+<td style="text-align:right;">
+-0.063
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-5.861
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro1
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+6.480
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro2
+</td>
+<td style="text-align:right;">
+0.028
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+13.723
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro3
+</td>
+<td style="text-align:right;">
+-0.056
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-37.701
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+metro4
+</td>
+<td style="text-align:right;">
+-0.024
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-16.585
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AGE
+</td>
+<td style="text-align:right;">
+-0.004
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+-52.381
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+age_sq
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+31.489
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state2
+</td>
+<td style="text-align:right;">
+-0.084
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+-7.153
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state4
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-0.552
+</td>
+<td style="text-align:right;">
+0.581
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state5
+</td>
+<td style="text-align:right;">
+0.016
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+2.525
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state6
+</td>
+<td style="text-align:right;">
+-0.026
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-6.257
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state8
+</td>
+<td style="text-align:right;">
+-0.051
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-10.561
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state9
+</td>
+<td style="text-align:right;">
+-0.052
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-10.326
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state10
+</td>
+<td style="text-align:right;">
+-0.007
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+-0.830
+</td>
+<td style="text-align:right;">
+0.407
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state11
+</td>
+<td style="text-align:right;">
+-0.078
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-7.573
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state12
+</td>
+<td style="text-align:right;">
+-0.005
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-1.071
+</td>
+<td style="text-align:right;">
+0.284
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state13
+</td>
+<td style="text-align:right;">
+-0.008
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-1.706
+</td>
+<td style="text-align:right;">
+0.088
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state15
+</td>
+<td style="text-align:right;">
+-0.051
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-7.097
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state16
+</td>
+<td style="text-align:right;">
+-0.002
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+-0.260
+</td>
+<td style="text-align:right;">
+0.795
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state17
+</td>
+<td style="text-align:right;">
+-0.036
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-8.141
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state18
+</td>
+<td style="text-align:right;">
+-0.004
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-0.842
+</td>
+<td style="text-align:right;">
+0.400
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state19
+</td>
+<td style="text-align:right;">
+-0.032
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-5.334
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state20
+</td>
+<td style="text-align:right;">
+-0.037
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-6.219
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state21
+</td>
+<td style="text-align:right;">
+0.022
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+4.035
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state22
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+1.597
+</td>
+<td style="text-align:right;">
+0.110
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state23
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+1.385
+</td>
+<td style="text-align:right;">
+0.166
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state24
+</td>
+<td style="text-align:right;">
+-0.067
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-14.277
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state25
+</td>
+<td style="text-align:right;">
+-0.028
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-5.988
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state26
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+0.079
+</td>
+<td style="text-align:right;">
+0.937
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state27
+</td>
+<td style="text-align:right;">
+-0.041
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-8.001
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state28
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+3.063
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state29
+</td>
+<td style="text-align:right;">
+-0.001
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-0.207
+</td>
+<td style="text-align:right;">
+0.836
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state30
+</td>
+<td style="text-align:right;">
+-0.004
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-0.412
+</td>
+<td style="text-align:right;">
+0.680
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state31
+</td>
+<td style="text-align:right;">
+-0.044
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-6.539
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state32
+</td>
+<td style="text-align:right;">
+-0.024
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-4.033
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state33
+</td>
+<td style="text-align:right;">
+-0.060
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+-8.953
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state34
+</td>
+<td style="text-align:right;">
+-0.038
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-8.415
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state35
+</td>
+<td style="text-align:right;">
+-0.001
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+-0.095
+</td>
+<td style="text-align:right;">
+0.925
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state36
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-7.310
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state37
+</td>
+<td style="text-align:right;">
+-0.010
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-2.255
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state38
+</td>
+<td style="text-align:right;">
+-0.034
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+-3.154
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state39
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+0.263
+</td>
+<td style="text-align:right;">
+0.792
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state40
+</td>
+<td style="text-align:right;">
+-0.020
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-3.566
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state41
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-0.087
+</td>
+<td style="text-align:right;">
+0.931
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state42
+</td>
+<td style="text-align:right;">
+-0.010
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-2.258
+</td>
+<td style="text-align:right;">
+0.024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state44
+</td>
+<td style="text-align:right;">
+0.013
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+1.578
+</td>
+<td style="text-align:right;">
+0.115
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state45
+</td>
+<td style="text-align:right;">
+-0.009
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-1.725
+</td>
+<td style="text-align:right;">
+0.085
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state46
+</td>
+<td style="text-align:right;">
+-0.048
+</td>
+<td style="text-align:right;">
+0.009
+</td>
+<td style="text-align:right;">
+-5.574
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state47
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+0.316
+</td>
+<td style="text-align:right;">
+0.752
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state48
+</td>
+<td style="text-align:right;">
+-0.036
+</td>
+<td style="text-align:right;">
+0.004
+</td>
+<td style="text-align:right;">
+-8.755
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state49
+</td>
+<td style="text-align:right;">
+-0.033
+</td>
+<td style="text-align:right;">
+0.006
+</td>
+<td style="text-align:right;">
+-5.656
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state50
+</td>
+<td style="text-align:right;">
+-0.048
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-4.763
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state51
+</td>
+<td style="text-align:right;">
+-0.053
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-11.537
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state53
+</td>
+<td style="text-align:right;">
+-0.031
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-6.563
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state54
+</td>
+<td style="text-align:right;">
+0.020
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+2.791
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state55
+</td>
+<td style="text-align:right;">
+-0.030
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+-5.879
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+state56
+</td>
+<td style="text-align:right;">
+-0.062
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+-6.046
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2014
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-2.470
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2015
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-9.378
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year2016
+</td>
+<td style="text-align:right;">
+0.005
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+4.300
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+</tbody>
+</table>
+
+
+<!-- rnb-html-end -->
+
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmxpYnJhcnkoZmVhdGhlcikNCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeShzYW5kd2ljaCkNCmxpYnJhcnkobG10ZXN0KQ0KbGlicmFyeShicm9vbSkNCmBgYA0KDQoNCmBgYHtyfQ0KZGYgPC0gcmVhZF9mZWF0aGVyKCJDOi9Vc2Vycy9uYXRlay9Eb2N1bWVudHMvbXBpX2V4cF9kZi5mZWF0aGVyIikNCmBgYA0KDQpgYGB7cn0NCmRmJG1waV9zY29yZSA9IGRmJGluY29tZV9wb3ZlcnR5KigxLzkpICsgDQogIGRmJGZhbV9lbXAgKigxLzkpICsgDQogIGRmJGhlYWx0aCooMS85KSArIA0KICBkZiRlZHVjYXRpb24qKDEvOSkgKw0KICBkZiRvdmVyY3Jvd2QqKDEvOSkgKw0KICBkZiRjb21wdXRlcl9pbnRlcm5ldCooMS85KSArIA0KICBkZiRkaXNhYmlsaXR5KigxLzkpICsNCiAgZGYkbGFuZ19kZXAgKiAoMS85KSArDQogIGRmJGhjb3N0X2RlcCAqICgxLzkpDQoNCmRmJG1waV9wb29yID0gaWZfZWxzZShkZiRtcGlfc2NvcmUgPiAuMzIsIDEsIDApDQpgYGANCg0KYGBge3J9DQpkZiRyYWNlIDwtIE5BDQpkZiRyYWNlW2RmJFJBQ0UgPT0gMV0gPC0gIldoaXRlIg0KZGYkcmFjZVtkZiRSQUNFID09IDJdIDwtICJCbGFjayINCmRmJHJhY2VbZGYkUkFDRSA9PSAzXSA8LSAiTmF0aXZlIg0KZGYkcmFjZVtkZiRSQUNFID09IDRdIDwtICJBc2lhbiINCmRmJHJhY2VbZGYkUkFDRSA9PSA1XSA8LSAiQXNpYW4iDQpkZiRyYWNlW2RmJFJBQ0UgPT0gNl0gPC0gIkFzaWFuIg0KZGYkcmFjZVtkZiRSQUNFID09IDddIDwtICJPdGhlciINCmRmJHJhY2VbZGYkUkFDRSA9PSA4XSA8LSAiVHdvIHJhY2VzIg0KZGYkcmFjZVtkZiRSQUNFID09IDldIDwtICJUaHJlZSBvciBtb3JlIHJhY2VzIg0KZGYkcmFjZVtkZiRISVNQQU4gPT0gMV0gPC0gIkhpc3BhbmljIg0KZGYkcmFjZVtkZiRISVNQQU4gPT0gMl0gPC0gIkhpc3BhbmljIg0KZGYkcmFjZVtkZiRISVNQQU4gPT0gM10gPC0gIkhpc3BhbmljIg0KZGYkcmFjZVtkZiRISVNQQU4gPT0gNF0gPC0gIkhpc3BhbmljIg0KYGBgDQoNCg0KYGBge3J9DQpkZiRzZXggPC0gYXMuZmFjdG9yKGRmJFNFWCkNCmRmJG1ldHJvIDwtIGFzLmZhY3RvcihkZiRNRVRSTykNCmRmJHllYXIgPC0gYXMuZmFjdG9yKGRmJFlFQVIpDQpkZiRhZ2Vfc3EgPC0gZGYkQUdFIF4gMg0KZGYkc3RhdGUgPC0gYXMuZmFjdG9yKGRmJFNUQVRFRklQKQ0KZGYkbnVtX2RlcCA8LSBkZiRtcGlfc2NvcmUgKiA5DQpkZiRyYWNlIDwtIGFzLmZhY3RvcihkZiRyYWNlKQ0KZGYkcmFjZSA8LSByZWxldmVsKGRmJHJhY2UsICJPdGhlciIpDQpzZXQuc2VlZCg0MikNCmRmX3NhbXBsZSA8LSBzYW1wbGVfZnJhYyhkZiwgMC4xMCkNCm1vZDEgPC0gbG0obnVtX2RlcCB+IHNleCtyYWNlK21ldHJvK0FHRSthZ2Vfc3Erc3RhdGUreWVhciwgd2VpZ2h0cyA9IFBFUldULCBkYXRhID0gZGZfc2FtcGxlKQ0KbW9kMSRuZXdzZSA8LSB2Y292SEMobW9kMSwgdHlwZT0iSEMzIikNCm1vZDEuZGlzcGxheSA8LSBjb2VmdGVzdChtb2QxLCBtb2QxJG5ld3NlKQ0KdGlkeV9vdXRwdXQgPC0gYnJvb206OnRpZHkobW9kMS5kaXNwbGF5KQ0KdGlkeV9vdXRwdXRbLDI6NV0gPC0gcm91bmQodGlkeV9vdXRwdXRbLDI6NV0sIDMpDQp0aWR5X291dHB1dCA8LSBrbml0cjo6a2FibGUodGlkeV9vdXRwdXQsICJodG1sIikNCnRpZHlfb3V0cHV0DQpgYGANCg0KYGBge3J9DQptb2QyIDwtIGxtKG1waV9wb29yIH4gc2V4K3JhY2UrbWV0cm8rQUdFK2FnZV9zcStzdGF0ZSt5ZWFyLCB3ZWlnaHRzID0gUEVSV1QsIGRhdGEgPSBkZl9zYW1wbGUpDQptb2QyJG5ld3NlIDwtIHZjb3ZIQyhtb2QyLCB0eXBlPSJIQzMiKQ0KbW9kMi5kaXNwbGF5IDwtIGNvZWZ0ZXN0KG1vZDIsIG1vZDIkbmV3c2UpDQp0aWR5X291dHB1dCA8LSBicm9vbTo6dGlkeShtb2QyLmRpc3BsYXkpDQp0aWR5X291dHB1dFssMjo1XSA8LSByb3VuZCh0aWR5X291dHB1dFssMjo1XSwgMykNCnRpZHlfb3V0cHV0IDwtIGtuaXRyOjprYWJsZSh0aWR5X291dHB1dCwgImh0bWwiKQ0KdGlkeV9vdXRwdXQNCmBgYA0KDQpgYGB7cn0NCm1vZDMgPC0gbG0oaW5jb21lX3BvdmVydHkgfiBzZXgrcmFjZSttZXRybytBR0UrYWdlX3NxK3N0YXRlK3llYXIsIHdlaWdodHMgPSBQRVJXVCwgZGF0YSA9IGRmX3NhbXBsZSkNCm1vZDMkbmV3c2UgPC0gdmNvdkhDKG1vZDMsIHR5cGU9IkhDMyIpDQptb2QzLmRpc3BsYXkgPC0gY29lZnRlc3QobW9kMywgbW9kMyRuZXdzZSkNCnRpZHlfb3V0cHV0IDwtIGJyb29tOjp0aWR5KG1vZDMuZGlzcGxheSkNCnRpZHlfb3V0cHV0WywyOjVdIDwtIHJvdW5kKHRpZHlfb3V0cHV0WywyOjVdLCAzKQ0KdGlkeV9vdXRwdXQgPC0ga25pdHI6OmthYmxlKHRpZHlfb3V0cHV0LCAiaHRtbCIpDQp0aWR5X291dHB1dA0KYGBgDQoNCg0KDQo=</div>
 
 
 
